@@ -1,6 +1,6 @@
-FROM php:8.3-apache
+FROM php:8.1-apache
 
-# Habilita o mod_rewrite do Apache (essencial pro Laravel)
+# Ativa mod_rewrite, necessário para o Laravel
 RUN a2enmod rewrite
 
 # Instala extensões do PHP necessárias
@@ -11,24 +11,24 @@ RUN apt-get update && apt-get install -y \
 # Instala o Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Define o diretório de trabalho
+# Define diretório de trabalho
 WORKDIR /var/www/html
 
-# Copia os arquivos do projeto pro container
+# Copia os arquivos do projeto
 COPY . .
 
 # Instala dependências do Laravel
 RUN composer install --no-dev --optimize-autoloader
 
-# Garante permissões para as pastas de cache do Laravel
+# Permissões corretas
 RUN chown -R www-data:www-data storage bootstrap/cache
 
-# Configura o Apache para apontar para o diretório `public` do Laravel
+# Define a raiz pública do Apache
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf \
-    && sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf \
-    && sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-enabled/000-default.conf
+ && sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf \
+ && sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-enabled/000-default.conf
 
 EXPOSE 80
 
