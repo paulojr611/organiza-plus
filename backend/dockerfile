@@ -1,0 +1,42 @@
+# Etapa 1: Imagem base com PHP 8.1 e Apache
+FROM php:8.1-apache
+
+# Ativa o mod_rewrite do Apache, necessário para o Laravel
+RUN a2enmod rewrite
+
+# Instala extensões e dependências necessárias
+RUN apt-get update && apt-get install -y \
+    git unzip zip curl libzip-dev libonig-dev libxml2-dev libicu-dev \
+    && docker-php-ext-install pdo pdo_mysql zip mbstring bcmath intl soap
+
+# Instala o Composer
+COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
+
+# Define o diretório de trabalho
+WORKDIR /var/www/html
+
+# Copia os arquivos de dependência primeiro para aproveitar o cache do Docker
+COPY composer.json composer.lock ./
+
+# Instala as dependências do Composer
+RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+
+# Copia o restante dos arquivos do projeto
+COPY . .
+
+# Ajusta as permissões para os diretórios necessários
+RUN chown -R www-data:www-data storage bootstrap/cache
+
+# Define o diretório raiz público do Apache
+ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+
+# Atualiza as configurações do Apache para o novo diretório raiz
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf \
+    && sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf \
+    && sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-enabled/000-default.conf
+
+# Expõe a porta 80
+EXPOSE 80
+
+# Comando de inicialização do container
+CMD ["apache2-foreground"]
