@@ -1,0 +1,27 @@
+# Imagem base com PHP, Composer e Apache
+FROM php:8.3-apache
+
+# Instala extensões do PHP
+RUN docker-php-ext-install pdo pdo_mysql
+
+# Instala o Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Define diretório de trabalho
+WORKDIR /var/www/html
+
+# Copia arquivos do projeto para o container
+COPY . .
+
+# Instala dependências do Laravel
+RUN composer install --no-dev --optimize-autoloader
+
+# Define permissões para o Laravel
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 775 storage bootstrap/cache
+
+# Expõe a porta usada pelo Laravel Artisan
+EXPOSE 8080
+
+# Comando para iniciar o servidor
+CMD php artisan serve --host=0.0.0.0 --port=8080
