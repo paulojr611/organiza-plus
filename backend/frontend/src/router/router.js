@@ -4,13 +4,19 @@ import rpg from '../views/rpg.vue';
 import criarpersonagem from '../views/CriarPersonagem.vue';
 import status from '../views/Status.vue';
 import login from '../views/Login.vue';
+import cadastro from '../views/Cadastro.vue';
 
 
 const routes = [
-    {
+  {
     path: '/',
     name: 'Login',
     component: login,
+  },
+    {
+    path: '/Cadastro',
+    name: 'Cadastro',
+    component: cadastro,
   },
   {
     path: '/criarpersonagem',

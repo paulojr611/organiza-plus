@@ -5,6 +5,7 @@ import { useRouter } from 'vue-router';
 import { sidebar } from '../stores/menuSidebar';
 import { AcademicCapIcon, BellSnoozeIcon, BellIcon } from '@heroicons/vue/24/solid';
 
+
 const menuStore = sidebar();
 
 const removeSide = () => {
@@ -52,6 +53,14 @@ onMounted(() => {
 onMounted(() => {
   addSide();
 });
+
+onMounted(() => {
+  const user = localStorage.getItem('user')
+  if (!user) {
+    window.location.href = '/' 
+  }
+})
+
 </script>
 
 <template>

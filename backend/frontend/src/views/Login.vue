@@ -33,7 +33,7 @@
       </form>
       <p class="text-center text-sm text-gray-600 mt-4">
         Não tem conta?
-        <a href="/register" class="text-blue-500 hover:underline">Cadastre-se</a>
+        <a href="/cadastro" class="text-blue-500 hover:underline">Cadastre-se</a>
       </p>
     </div>
   </div>
@@ -53,9 +53,9 @@ const handleSubmit = async () => {
   loading.value = true
   try {
     const response = await axios.post('/api/login', form)
-    // Armazene o token ou redirecione
+    localStorage.setItem('user', JSON.stringify(response.data.user ?? { email: form.email }))
     console.log('Login bem-sucedido:', response.data)
-    window.location.href = '/' // Ajuste conforme sua rota
+    window.location.href = '/count' // Redireciona após login
   } catch (error) {
     console.error('Erro ao fazer login:', error.response?.data)
     alert(error.response?.data.message || 'Erro no login')
