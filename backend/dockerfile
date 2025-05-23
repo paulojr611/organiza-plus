@@ -1,27 +1,35 @@
-# Imagem base com PHP, Composer e Apache
 FROM php:8.3-apache
 
-# Instala extensões do PHP
-RUN docker-php-ext-install pdo pdo_mysql
+# Habilita o mod_rewrite do Apache (essencial pro Laravel)
+RUN a2enmod rewrite
+
+# Instala extensões do PHP necessárias
+RUN apt-get update && apt-get install -y \
+    libzip-dev unzip zip git curl \
+    && docker-php-ext-install pdo pdo_mysql zip
 
 # Instala o Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Define diretório de trabalho
+# Define o diretório de trabalho
 WORKDIR /var/www/html
 
-# Copia arquivos do projeto para o container
+# Copia os arquivos do projeto pro container
 COPY . .
 
 # Instala dependências do Laravel
 RUN composer install --no-dev --optimize-autoloader
 
-# Define permissões para o Laravel
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 storage bootstrap/cache
+# Garante permissões para as pastas de cache do Laravel
+RUN chown -R www-data:www-data storage bootstrap/cache
 
-# Expõe a porta usada pelo Laravel Artisan
-EXPOSE 8080
+# Configura o Apache para apontar para o diretório `public` do Laravel
+ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 
-# Comando para iniciar o servidor
-CMD php artisan serve --host=0.0.0.0 --port=8080
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf \
+    && sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf \
+    && sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-enabled/000-default.conf
+
+EXPOSE 80
+
+CMD ["apache2-foreground"]

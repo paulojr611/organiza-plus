@@ -10,7 +10,7 @@ services:
       - key: APP_ENV
         value: production
       - key: APP_KEY
-        value: # gere com php artisan key:generate --show
+        value: base64:+zgHD3mOTwK4LcrbgsfZ7bk0ukACtSSPdcstAyOMYkA=
       - key: APP_DEBUG
         value: false
       - key: DB_CONNECTION
