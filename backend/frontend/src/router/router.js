@@ -5,6 +5,7 @@ import criarpersonagem from '../views/CriarPersonagem.vue';
 import status from '../views/Status.vue';
 import login from '../views/Login.vue';
 import cadastro from '../views/Cadastro.vue';
+import resetsenha from '../views/ResetSenha.vue';
 
 
 const routes = [
@@ -13,7 +14,12 @@ const routes = [
     name: 'Login',
     component: login,
   },
-    {
+  {
+    path: '/ResetSenha',
+    name: 'resetsenha',
+    component: resetsenha,
+  },
+  {
     path: '/Cadastro',
     name: 'Cadastro',
     component: cadastro,

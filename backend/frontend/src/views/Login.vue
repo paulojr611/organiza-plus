@@ -32,6 +32,9 @@
         </button>
       </form>
       <p class="text-center text-sm text-gray-600 mt-4">
+        <a href="/ResetSenha" class="text-blue-500 hover:underline">Esqueceu sua senha?</a>
+      </p>
+      <p class="text-center text-sm text-gray-600 mt-4">
         Não tem conta?
         <a href="/cadastro" class="text-blue-500 hover:underline">Cadastre-se</a>
       </p>

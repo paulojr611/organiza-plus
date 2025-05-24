@@ -30,8 +30,9 @@ const route = useRoute()
 
 // Checa se é uma rota de autenticação
 const isAuthPage = computed(() => {
-  return route.path === '/' || route.path === '/'
+  return route.path === '/cadastro' || route.path === '/' || route.path === '/ResetSenha'
 })
+
 </script>
 
 <style scoped>
