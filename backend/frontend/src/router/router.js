@@ -1,11 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import count from '../views/Count.vue';
-import rpg from '../views/rpg.vue';
-import criarpersonagem from '../views/CriarPersonagem.vue';
-import status from '../views/Status.vue';
 import login from '../views/Login.vue';
 import cadastro from '../views/Cadastro.vue';
 import resetsenha from '../views/ResetSenha.vue';
+import dashboard from '../views/Dashboard.vue';
+import { useStore } from '@/stores'
 
 
 const routes = [
@@ -25,26 +24,16 @@ const routes = [
     component: cadastro,
   },
   {
-    path: '/criarpersonagem',
-    name: 'criarpersonagem',
-    component: criarpersonagem,
-  },
-  {
-    path: '/rpg',
-    name: 'rpg',
-    component: rpg,
-   // meta: { requiresClick: true },
-  },
-  {
-    path: '/status',
-    name: 'status',
-    component: status,
-   // meta: { requiresClick: true },
+    path: '/Dashboard',
+    name: 'Dashboard',
+    component: dashboard,
+    meta: {requiresAuth: true},
   },
   {
     path: '/count',
     name: 'count',
     component: count,
+    meta: {requiresAuth: true},
   },
 
 ];
@@ -56,13 +45,26 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach((to, from, next) => {
+
+router.beforeEach((to, from) => {
+  const store = useStore()
+
+  if (to.meta.requiresAuth && !store.user) {
+    return { name: 'Login' }
+  }
+
+  if ((to.name === '/' || to.name === '/Cadastro') && store.user) {
+    return { name: 'Dashboard' }
+  }
+})
+
+/*router.beforeEach((to, from, next) => {
   if (to.meta.requiresClick && !hasClicked) {
     console.warn('Acesso bloqueado: requer clique antes de acessar.');
     return next(false); 
   }
   next();
-});
+});*/
 
 export const setClickAccess = () => {
   hasClicked = true;
