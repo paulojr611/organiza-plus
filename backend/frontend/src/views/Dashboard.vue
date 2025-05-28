@@ -1,20 +1,7 @@
 <template>
   <div class="flex flex-col h-full">
-    <!-- Saudação e Adição Rápida -->
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-2xl font-bold">Olá, {{ user.name }}!</h1>
-      <div class="flex">
-        <input
-          v-model="newTask"
-          @keyup.enter="addTask"
-          placeholder="Nova tarefa..."
-          class="px-4 py-2 border rounded-l-lg focus:ring"
-        />
-        <button @click="addTask"
-                class="px-4 bg-blue-500 text-white rounded-r-lg hover:bg-blue-600">
-          Adicionar
-        </button>
-      </div>
     </div>
 
     <!-- Grid de Cards -->
@@ -72,7 +59,6 @@ const user = computed(() => store.user)
 const tasks = computed(() => store.tasks)
 const goals = computed(() => store.goals)
 const todayTasks = computed(() => store.todayTasks())
-const newTask = ref('');
 
 const calendarAttributes = ref([
   {
@@ -84,15 +70,6 @@ const calendarAttributes = ref([
 
 const router = useRouter();
 
-function addTask() {
-  if (!newTask.value.trim()) return;
-  store.addTask({ title: newTask.value, due_date: new Date() });
-  newTask.value = '';
-}
-
-function complete(task) {
-  store.completeTask(task.id);
-}
 
 function goToDate(day) {
   const selectedDate = day.date;

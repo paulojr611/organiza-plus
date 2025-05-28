@@ -45,13 +45,25 @@ const loading = ref(false)
 const handleRegister = async () => {
   loading.value = true
   try {
-    await axios.post('/api/register', form)
+    // Chama o endpoint de registro e recebe { user, token }
+    const { data } = await axios.post('/api/register', form)
+
+    // Salva token e usuário no localStorage
+    localStorage.setItem('api_token', data.token)
+    localStorage.setItem('user', JSON.stringify(data.user))
+
+    // Configura o header Authorization para chamadas futuras
+    axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`
+
     alert('Cadastro realizado com sucesso!')
-    window.location.href = '/'
+    // Redireciona para o dashboard (ou rota inicial desejada)
+    window.location.href = '/dashboard'
   } catch (error) {
+    console.error('Erro ao cadastrar:', error.response?.data)
     alert(error.response?.data.message || 'Erro ao cadastrar')
   } finally {
     loading.value = false
   }
 }
 </script>
+

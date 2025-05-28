@@ -4,6 +4,7 @@ import login from '../views/Login.vue';
 import cadastro from '../views/Cadastro.vue';
 import resetsenha from '../views/ResetSenha.vue';
 import dashboard from '../views/Dashboard.vue';
+import novatarefa from '../views/NovaTarefa.vue';
 import { useStore } from '@/stores'
 
 
@@ -15,7 +16,7 @@ const routes = [
   },
   {
     path: '/ResetSenha',
-    name: 'resetsenha',
+    name: 'ResetSenha',
     component: resetsenha,
   },
   {
@@ -29,9 +30,15 @@ const routes = [
     component: dashboard,
     meta: {requiresAuth: true},
   },
+    {
+    path: '/NovaTarefa',
+    name: 'NovaTarefa',
+    component: novatarefa,
+    meta: {requiresAuth: true},
+  },
   {
     path: '/count',
-    name: 'count',
+    name: 'Count',
     component: count,
     meta: {requiresAuth: true},
   },

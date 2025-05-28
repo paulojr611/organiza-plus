@@ -42,18 +42,18 @@ const loading = ref(false)
 const handleSubmit = async () => {
   loading.value = true
   try {
+    // Faz a requisição de login e recebe o token
+    const { data } = await axios.post('/api/login', form)
 
-    await axios.get('/sanctum/csrf-cookie', { withCredentials: true })
+    // Armazena o token e o usuário no localStorage
+    localStorage.setItem('api_token', data.token)
+    localStorage.setItem('user', JSON.stringify(data.user))
 
-    const response = await axios.post('/api/login', form, { withCredentials: true })
+    // Configura o axios para enviar o token em todas as requisições
+    axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`
 
-    localStorage.setItem(
-      'user',
-      JSON.stringify(response.data.user ?? { email: form.email })
-    )
-
-    console.log('Login bem-sucedido:', response.data)
-    window.location.href = '/Dashboard'
+    console.log('Login bem-sucedido:', data)
+    window.location.href = '/dashboard'
   } catch (error) {
     console.error('Erro ao fazer login:', error.response?.data)
     alert(error.response?.data.message || 'Erro no login')
@@ -62,5 +62,6 @@ const handleSubmit = async () => {
   }
 }
 </script>
+
 
 <style scoped></style>

@@ -7,18 +7,23 @@ use App\Http\Controllers\ResetPasswordController;
 use App\Http\Controllers\TaskController;
 
 
-Route::middleware('auth:sanctum')->group(function() {
-    Route::get    ('/tasks',        [TaskController::class, 'index']);
-    Route::post   ('/tasks',        [TaskController::class, 'store']);
-    Route::put    ('/tasks/{task}', [TaskController::class, 'update']);
-    Route::delete ('/tasks/{task}', [TaskController::class, 'destroy']);
-});
-
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/reset-password', [ResetPasswordController::class, 'reset']);
+Route::post('/register',         [AuthController::class, 'register']);
+Route::post('/login',            [AuthController::class, 'login']);
+Route::post('/reset-password',   [ResetPasswordController::class, 'reset']);
 
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+Route::middleware('auth:sanctum')->group(function () {
+    // Logout: revoga todos os tokens do usuário atual
+    Route::post('/logout', [AuthController::class, 'logout']);
+
+    // Tarefas CRUD
+    Route::get('/tasks',        [TaskController::class, 'index']);
+    Route::post('/tasks',       [TaskController::class, 'store']);
+    Route::put('/tasks/{task}', [TaskController::class, 'update']);
+    Route::delete('/tasks/{task}', [TaskController::class, 'destroy']);
+
+    // Obter dados do usuário logado
+    Route::get('/user', function (Request $request) {
+        return response()->json($request->user());
+    });
 });

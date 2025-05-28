@@ -1,78 +1,50 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreTaskRequest;
-use App\Http\Requests\UpdateTaskRequest;
-use App\Http\Resources\TaskResource;
 use App\Models\Task;
 use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
-    public function __construct()
-    {
-        // Garante que só usuários autenticados acessem
-        $this->middleware('auth:sanctum');
-    }
-
-    /**
-     * Listar todas as tarefas do usuário.
-     */
     public function index(Request $request)
     {
-        $tasks = $request->user()
-                         ->tasks()
-                         ->orderBy('due_date', 'asc')
-                         ->get();
-
-        return TaskResource::collection($tasks);
+        return $request->user()->tasks()->orderBy('due_date')->get();
     }
 
-    /**
-     * Criar uma nova tarefa.
-     */
-    public function store(StoreTaskRequest $request)
+    public function store(Request $request)
     {
-        $task = $request->user()->tasks()->create($request->validated());
+        $data = $request->validate([
+            'title' => 'required|string|max:255',
+            'due_date' => 'nullable|date'
+        ]);
 
-        return (new TaskResource($task))
-            ->response()
-            ->setStatusCode(201);
+        $task = $request->user()->tasks()->create($data);
+
+        return response()->json($task, 201);
     }
 
-    /**
-     * Mostrar uma tarefa específica.
-     */
-    public function show(Task $task)
-    {
-        $this->authorize('view', $task);
-
-        return new TaskResource($task);
-    }
-
-    /**
-     * Atualizar os dados de uma tarefa.
-     */
-    public function update(UpdateTaskRequest $request, Task $task)
+    public function update(Request $request, Task $task)
     {
         $this->authorize('update', $task);
 
-        $task->update($request->validated());
+        $data = $request->validate([
+            'title' => 'string|max:255',
+            'due_date' => 'nullable|date',
+            'completed' => 'boolean'
+        ]);
 
-        return new TaskResource($task);
+        $task->update($data);
+
+        return response()->json($task);
     }
 
-    /**
-     * Remover uma tarefa.
-     */
     public function destroy(Task $task)
     {
         $this->authorize('delete', $task);
 
         $task->delete();
 
-        return response()->noContent();
+        return response()->json(['message' => 'Tarefa deletada']);
     }
 }
