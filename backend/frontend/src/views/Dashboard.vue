@@ -6,9 +6,11 @@
 
     <!-- Grid de Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1 overflow-auto">
-      <!-- Card: Tarefas de Hoje -->
+      <!-- Card: Tarefas do Dia Selecionado -->
       <div class="bg-white p-4 rounded-2xl shadow">
-        <h2 class="font-semibold mb-3">Tarefas de Hoje</h2>
+        <h2 class="font-semibold mb-3">
+          Tarefas de {{ selectedDay.toLocaleDateString('pt-BR') }}
+        </h2>
         <ul class="space-y-2">
           <li v-for="task in todayTasks" :key="task.id" class="flex justify-between">
             <span>{{ task.title }}</span>
@@ -51,14 +53,27 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { useStore } from '@/stores'
 
 const store = useStore()
 const user = computed(() => store.user)
 const tasks = computed(() => store.tasks)
 const goals = computed(() => store.goals)
-const todayTasks = computed(() => store.todayTasks())
+
+const selectedDay = ref(new Date())
+
+onMounted(async () => {
+  await store.fetchTasks()
+})
+
+const todayTasks = computed(() =>
+  tasks.value.filter(task => {
+    const taskDate = task.due_date?.slice(0, 10)
+    const selectedDate = selectedDay.value.toISOString().slice(0, 10)
+    return taskDate === selectedDate
+  })
+)
+
 
 const calendarAttributes = ref([
   {
@@ -66,20 +81,14 @@ const calendarAttributes = ref([
     highlight: true,
     dates: new Date(),
   },
-]);
-
-const router = useRouter();
-
+])
 
 function goToDate(day) {
-  const selectedDate = day.date;
-  router.push({ name: 'Calendar', query: { date: selectedDate.toISOString() } });
+  selectedDay.value = day.date
 }
 
-function isToday(d) {
-  const today = new Date();
-  return d.getDate() === today.getDate() &&
-    d.getMonth() === today.getMonth() &&
-    d.getFullYear() === today.getFullYear();
+function complete(task) {
+  console.log('Completar tarefa:', task)
 }
 </script>
+
