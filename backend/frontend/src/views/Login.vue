@@ -42,14 +42,12 @@ const loading = ref(false)
 const handleSubmit = async () => {
   loading.value = true
   try {
-    // Faz a requisição de login e recebe o token
     const { data } = await axios.post('/api/login', form)
 
-    // Armazena o token e o usuário no localStorage
+
     localStorage.setItem('api_token', data.token)
     localStorage.setItem('user', JSON.stringify(data.user))
 
-    // Configura o axios para enviar o token em todas as requisições
     axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`
 
     console.log('Login bem-sucedido:', data)

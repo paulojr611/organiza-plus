@@ -46,10 +46,17 @@ const form = reactive({
 const submitTask = async () => {
   loading.value = true
   try {
+    const token = localStorage.getItem('api_token')
+
     await axios.post('/api/tasks', {
       title: form.title,
       due_date: form.due_date
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
     })
+
     alert('Tarefa criada com sucesso!')
     router.push({ name: 'Dashboard' })
   } catch (err) {
@@ -59,4 +66,5 @@ const submitTask = async () => {
     loading.value = false
   }
 }
+
 </script>
