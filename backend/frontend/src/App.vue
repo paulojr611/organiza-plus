@@ -29,9 +29,14 @@ axios.defaults.baseURL = 'http://localhost:8000'
 const route = useRoute()
 
 // Checa se é uma rota de autenticação
+const authPages = ['/', '/cadastro', '/ResetSenha', '/NaoEncontrada']
+
 const isAuthPage = computed(() => {
-  return route.path === '/cadastro' || route.path === '/' || route.path === '/Resetsenha'
+  const isMetaPublic = route.meta.layout === 'public'
+  const isPathInAuthPages = authPages.includes(route.path)
+  return isMetaPublic || isPathInAuthPages
 })
+
 
 </script>
 
