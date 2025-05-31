@@ -44,7 +44,6 @@ const handleSubmit = async () => {
   try {
     const { data } = await axios.post('/api/login', form)
 
-
     localStorage.setItem('api_token', data.token)
     localStorage.setItem('user', JSON.stringify(data.user))
 

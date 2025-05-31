@@ -12,6 +12,23 @@ class TaskController extends Controller
         return $request->user()->tasks()->orderBy('due_date')->get();
     }
 
+    public function updateStatus(Request $request, Task $task)
+    {
+        $request->validate([
+            'status' => 'required|in:Não iniciada,Em andamento,Concluída'
+        ]);
+
+        if ($task->user_id !== auth()->id()) {
+            return response()->json(['message' => 'Não autorizado.'], 403);
+        }
+
+        $task->status = $request->status;
+        $task->completed = $request->status === 'Concluída' ? 1 : 0;
+        $task->save();
+
+        return response()->json(['message' => 'Status atualizado com sucesso!', 'task' => $task]);
+    }
+
     public function store(Request $request)
     {
         $data = $request->validate([
