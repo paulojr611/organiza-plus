@@ -78,35 +78,44 @@ import { useStore } from '@/stores'
 import { PaperClipIcon } from '@heroicons/vue/24/outline'
 import { sidebar } from '../stores/menuSidebar'
 
-const menuStore = sidebar();
+const menuStore = sidebar()
 const store = useStore()
 const user = computed(() => store.user)
 const tasks = computed(() => store.tasks)
 const goals = computed(() => store.goals)
 
-const selectedDay = ref(new Date())
+const selectedDay = ref(new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()))
 
 const addSide = () => {
-  menuStore.addMenuItem({ label: 'Nova Tarefa', icon: PaperClipIcon, route: '/NovaTarefa' });
-};
+  menuStore.addMenuItem({ label: 'Nova Tarefa', icon: PaperClipIcon, route: '/NovaTarefa' })
+}
 const removeSide = () => {
-  menuStore.removeAllMenuItems();
-};
-
+  menuStore.removeAllMenuItems()
+}
 
 onMounted(async () => {
-  removeSide();
-  addSide();
+  removeSide()
+  addSide()
   await store.fetchTasks()
 })
 
-const todayTasks = computed(() =>
-  tasks.value.filter(task => {
-    const taskDate = task.due_date?.slice(0, 10)
-    const selectedDate = selectedDay.value.toISOString().slice(0, 10)
-    return taskDate === selectedDate
-  })
-)
+
+function goToDate(day) {
+  selectedDay.value = day.date
+}
+
+
+const todayTasks = computed(() => {
+  return tasks.value.filter(task => {
+    if (!task.due_date) return false;
+
+    const taskDateStr = task.due_date.split('T')[0];
+    const selectedDateStr = selectedDay.value.toISOString().split('T')[0];
+
+    return taskDateStr === selectedDateStr;
+  });
+});
+
 
 const calendarAttributes = ref([
   {
@@ -115,10 +124,6 @@ const calendarAttributes = ref([
     dates: new Date(),
   },
 ])
-
-function goToDate(day) {
-  selectedDay.value = day.date
-}
 
 async function updateStatus(task, status) {
   try {
@@ -130,13 +135,12 @@ async function updateStatus(task, status) {
     console.log('Status atualizado:', status)
   } catch (error) {
     if (error.response) {
-      console.error('Erro detalhado do backend:', error.response.data);
+      console.error('Erro detalhado do backend:', error.response.data)
     } else {
-      console.error('Erro desconhecido:', error);
+      console.error('Erro desconhecido:', error)
     }
   }
 }
-
 
 function editTask(task) {
   console.log('Editar tarefa:', task)
@@ -154,15 +158,13 @@ async function deleteTask(task) {
 const cardClassByStatus = (status) => {
   switch (status) {
     case 'Não iniciada':
-      return 'bg-white shadow-none'; // branco, sem brilho
+      return 'bg-white shadow-none'
     case 'Em andamento':
-      return 'bg-yellow-100 shadow-[0_0_12px_2px_rgba(202,138,4,0.5)]'; // amarelo com brilho
+      return 'bg-yellow-100 shadow-[0_0_12px_2px_rgba(202,138,4,0.5)]'
     case 'Concluída':
-      return 'bg-green-100 shadow-[0_0_12px_2px_rgba(21,128,61,0.5)]'; // verde com brilho
+      return 'bg-green-100 shadow-[0_0_12px_2px_rgba(21,128,61,0.5)]'
     default:
-      return 'bg-gray-100 shadow'; // fallback
+      return 'bg-gray-100 shadow'
   }
-};
-
-
+}
 </script>

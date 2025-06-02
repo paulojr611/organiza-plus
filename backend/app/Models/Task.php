@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App\Models;
 
@@ -9,10 +9,32 @@ class Task extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'due_date', 'completed', 'user_id'];
+    protected $fillable = [
+        'title',
+        'due_date',
+        'completed',
+        'user_id',
+        'recurrence',
+    ];
+
+    protected $casts = [
+        'due_date' => 'date',
+        'completed' => 'boolean',
+        'recurrence' => 'array',
+    ];
 
     public function user()
     {
         return $this->belongsTo(User::class);
     }
+    public function completions()
+    {
+        return $this->hasMany(TaskCompletion::class);
+    }
+
+    public function isCompletedForToday(): bool
+    {
+        return $this->completions()->whereDate('date', today())->exists();
+    }
+
 }

@@ -6,6 +6,8 @@ import VCalendar from 'v-calendar'
 import 'v-calendar/style.css'
 import './index.css'
 import axios from 'axios'
+import Toast, { POSITION } from "vue-toastification";
+import "vue-toastification/dist/index.css";
 
 axios.defaults.baseURL = 'http://localhost:8000'
 
@@ -22,3 +24,9 @@ app.use(VCalendar, {
 app.mount('#app')
 
 
+
+
+app.use(Toast, {
+  position: POSITION.TOP_RIGHT,
+  timeout: 3000,
+});
