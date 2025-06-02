@@ -4,13 +4,22 @@ namespace App\Http\Controllers;
 
 use App\Models\Task;
 use Illuminate\Http\Request;
+use App\Models\TaskCompletion;  
 
 class TaskController extends Controller
 {
-    public function index(Request $request)
-    {
-        return $request->user()->tasks()->orderBy('due_date')->get();
-    }
+   public function index(Request $request)
+{
+    $user = $request->user();
+
+    $tasks = $user->tasks()
+        ->orderBy('due_date')
+        ->get();
+
+    return $tasks;
+}
+
+
 
     public function updateStatus(Request $request, Task $task)
     {
@@ -23,7 +32,7 @@ class TaskController extends Controller
         }
 
         $task->status = $request->status;
-        $task->completed = $request->status === 'Concluída' ? 1 : 0;
+        $task->completed = $request->status === 'Concluída' ? true : false;
         $task->save();
 
         return response()->json(['message' => 'Status atualizado com sucesso!', 'task' => $task]);
@@ -31,12 +40,20 @@ class TaskController extends Controller
 
     public function store(Request $request)
     {
-        $data = $request->validate([
+        $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'due_date' => 'nullable|date'
+            'due_date' => 'required|date',
+            'recurrence' => 'nullable|array',
+            'recurrence.*' => 'in:seg,ter,qua,qui,sex,sab,dom',
         ]);
 
-        $task = $request->user()->tasks()->create($data);
+        $task = new Task();
+        $task->user_id = auth()->id();  // associa a tarefa ao usuário logado
+        $task->title = $validated['title'];
+        $task->due_date = $validated['due_date'];
+        $task->recurrence = $validated['recurrence'] ?? null;
+        $task->completed = false;
+        $task->save();
 
         return response()->json($task, 201);
     }
@@ -48,7 +65,9 @@ class TaskController extends Controller
         $data = $request->validate([
             'title' => 'string|max:255',
             'due_date' => 'nullable|date',
-            'completed' => 'boolean'
+            'completed' => 'boolean',
+            'recurrence' => 'nullable|array',
+            'recurrence.*' => 'in:seg,ter,qua,qui,sex,sab,dom',
         ]);
 
         $task->update($data);
@@ -64,4 +83,22 @@ class TaskController extends Controller
 
         return response()->json(['message' => 'Tarefa deletada']);
     }
+
+
+    public function completeToday(Task $task)
+    {
+        $user = auth()->user();
+
+        if ($task->user_id !== $user->id) {
+            return response()->json(['message' => 'Não autorizado.'], 403);
+        }
+
+        TaskCompletion::firstOrCreate([
+            'task_id' => $task->id,
+            'date' => today()->toDateString(),
+        ]);
+
+        return response()->json(['message' => 'Tarefa marcada como concluída para hoje.']);
+    }
+
 }
