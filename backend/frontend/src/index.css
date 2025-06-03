@@ -6,3 +6,9 @@ html, body {
     overflow: hidden;
   }
   
+  .day-disabled-custom {
+  color: #9ca3af !important; /* gray-400 */
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
