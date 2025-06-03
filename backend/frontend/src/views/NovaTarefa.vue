@@ -4,36 +4,43 @@
     <form @submit.prevent="submitTask">
       <div class="mb-4">
         <label class="block mb-1 font-semibold">Título</label>
-        <input v-model="form.title" class="w-full border p-2 rounded-lg" :class="{ 'border-red-500': errors.title }"
-          @input="errors.title = ''" required />
+        <input
+          v-model="form.title"
+          class="w-full border p-2 rounded-lg"
+          :class="{ 'border-red-500': errors.title }"
+          @input="errors.title = ''"
+          required
+        />
         <p v-if="errors.title" class="text-red-500 text-sm mt-1">{{ errors.title }}</p>
       </div>
 
       <div class="mb-4">
         <label class="block mb-1 font-semibold">Selecione as datas</label>
-        <vc-calendar :attributes="attributes" :disabled-dates="disabledDates" @dayclick="onDayClick" class="w-full" />
+        <vc-calendar
+          :attributes="attributes"
+          @dayclick="onDayClick"
+          class="w-full"
+        />
         <p v-if="errors.due_dates" class="text-red-500 text-sm mt-1">{{ errors.due_dates }}</p>
       </div>
 
-      <button type="submit" :disabled="loading"
-        class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50 flex items-center gap-2">
+      <button
+        type="submit"
+        :disabled="loading"
+        class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50 flex items-center gap-2"
+      >
         {{ loading ? 'Salvando...' : 'Salvar Tarefa' }}
-        <svg v-if="loading" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
-          viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-        </svg>
       </button>
     </form>
   </div>
 </template>
 
 <script setup>
-import { reactive, ref, computed, onMounted } from 'vue'
+import { reactive, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
-import { ClipboardIcon } from '@heroicons/vue/24/outline'
 import { sidebar } from '../stores/menuSidebar'
+import { ClipboardIcon } from '@heroicons/vue/24/outline'
 
 const menuStore = sidebar()
 const router = useRouter()
@@ -51,32 +58,11 @@ const errors = reactive({
 
 const selectedDays = ref([])
 
-const isDateDisabled = (date) => {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-
-  const selected = new Date(date)
-  selected.setHours(0, 0, 0, 0)
-
-  return selected < today
-}
+const today = new Date()
+today.setHours(0, 0, 0, 0)
 
 const attributes = computed(() => {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-
-  const disabledBeforeToday = {
-    key: 'disabled-before-today',
-    dates: { to: new Date(today.getTime() - 86400000) },
-    isDisabled: true,
-    customData: { isPast: true },
-    contentClass({ customData }) {
-      return customData?.isPast ? 'day-disabled-custom' : ''
-    }
-  }
-
-
-  const highlights = selectedDays.value.map(day => ({
+  return selectedDays.value.map(day => ({
     key: `selected-${day.date}`,
     dates: day.date,
     highlight: {
@@ -84,18 +70,20 @@ const attributes = computed(() => {
       borderRadius: '50%',
     },
   }))
-
-  return [disabledBeforeToday, ...highlights]
 })
 
+const isDatePast = (date) => {
+  const d = new Date(date)
+  d.setHours(0, 0, 0, 0)
+  return d < today
+}
 
-
-const disabledDates = ref([])
-
-
-
+// Ao clicar no dia do calendário
 const onDayClick = ({ date }) => {
-  if (isDateDisabled(date)) return // bloqueia o clique
+  if (isDatePast(date)) {
+    alert('Não é permitido selecionar datas anteriores a hoje.')
+    return
+  }
 
   const dateStr = new Date(date).toDateString()
   const idx = selectedDays.value.findIndex(
@@ -118,10 +106,8 @@ const addSide = () => {
   menuStore.addMenuItem({ label: 'Dashboard', icon: ClipboardIcon, route: '/Dashboard' })
 }
 
-onMounted(() => {
-  removeSide()
-  addSide()
-})
+removeSide()
+addSide()
 
 const submitTask = async () => {
   errors.title = ''
@@ -140,7 +126,6 @@ const submitTask = async () => {
   loading.value = true
   try {
     const token = localStorage.getItem('api_token')
-
     const formattedDates = form.due_dates.map(d =>
       new Date(d).toISOString().slice(0, 10)
     )
@@ -156,7 +141,6 @@ const submitTask = async () => {
     form.title = ''
     form.due_dates = []
     selectedDays.value = []
-
     router.push({ name: 'Dashboard' })
   } catch (err) {
     if (err.response?.status === 422 && err.response.data.errors) {
@@ -171,4 +155,3 @@ const submitTask = async () => {
   }
 }
 </script>
-
