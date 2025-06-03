@@ -4,22 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Models\Task;
 use Illuminate\Http\Request;
-use App\Models\TaskCompletion;  
+use App\Models\TaskCompletion;
 
 class TaskController extends Controller
 {
-   public function index(Request $request)
-{
-    $user = $request->user();
+    public function index(Request $request)
+    {
+        $user = $request->user();
 
-    $tasks = $user->tasks()
-        ->orderBy('due_date')
-        ->get();
+        $tasks = $user->tasks()
+            ->orderBy('due_date')
+            ->get();
 
-    return $tasks;
-}
-
-
+        return $tasks;
+    }
 
     public function updateStatus(Request $request, Task $task)
     {
@@ -32,31 +30,49 @@ class TaskController extends Controller
         }
 
         $task->status = $request->status;
-        $task->completed = $request->status === 'Concluída' ? true : false;
+        $task->completed = $request->status === 'Concluída';
         $task->save();
 
         return response()->json(['message' => 'Status atualizado com sucesso!', 'task' => $task]);
     }
 
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'due_date' => 'required|date',
-            'recurrence' => 'nullable|array',
-            'recurrence.*' => 'in:seg,ter,qua,qui,sex,sab,dom',
+  public function store(Request $request)
+{
+    $hasMultipleDates = is_array($request->due_date);
+
+    $validated = $request->validate([
+        'title' => 'required|string|max:255',
+        'due_date' => $hasMultipleDates ? 'required|array|min:1' : 'required|date',
+        'due_date.*' => $hasMultipleDates ? 'required|date' : '',
+    ]);
+
+    $userId = auth()->id();
+    $tasks = [];
+
+    if ($hasMultipleDates) {
+        foreach ($validated['due_date'] as $date) {
+            $tasks[] = Task::create([
+                'user_id' => $userId,
+                'title' => $validated['title'],
+                'due_date' => $date,
+                'completed' => false,
+            ]);
+        }
+    } else {
+        $tasks[] = Task::create([
+            'user_id' => $userId,
+            'title' => $validated['title'],
+            'due_date' => $validated['due_date'],
+            'completed' => false,
         ]);
-
-        $task = new Task();
-        $task->user_id = auth()->id();  // associa a tarefa ao usuário logado
-        $task->title = $validated['title'];
-        $task->due_date = $validated['due_date'];
-        $task->recurrence = $validated['recurrence'] ?? null;
-        $task->completed = false;
-        $task->save();
-
-        return response()->json($task, 201);
     }
+
+    return response()->json([
+        'message' => count($tasks) > 1 ? 'Tarefas criadas com sucesso!' : 'Tarefa criada com sucesso!',
+        'data' => $tasks,
+    ], 201);
+}
+
 
     public function update(Request $request, Task $task)
     {
@@ -66,8 +82,6 @@ class TaskController extends Controller
             'title' => 'string|max:255',
             'due_date' => 'nullable|date',
             'completed' => 'boolean',
-            'recurrence' => 'nullable|array',
-            'recurrence.*' => 'in:seg,ter,qua,qui,sex,sab,dom',
         ]);
 
         $task->update($data);
@@ -84,7 +98,6 @@ class TaskController extends Controller
         return response()->json(['message' => 'Tarefa deletada']);
     }
 
-
     public function completeToday(Task $task)
     {
         $user = auth()->user();
@@ -100,5 +113,4 @@ class TaskController extends Controller
 
         return response()->json(['message' => 'Tarefa marcada como concluída para hoje.']);
     }
-
 }

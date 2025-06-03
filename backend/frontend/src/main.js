@@ -9,6 +9,7 @@ import axios from 'axios'
 import Toast, { POSITION } from "vue-toastification";
 import "vue-toastification/dist/index.css";
 
+
 axios.defaults.baseURL = 'http://localhost:8000'
 
 

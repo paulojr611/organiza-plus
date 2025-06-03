@@ -22,8 +22,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/tasks/{task}', [TaskController::class, 'update']);
     Route::put('/tasks/{task}/status', [TaskController::class, 'updateStatus']);
     Route::delete('/tasks/{task}', [TaskController::class, 'destroy']);
-    Route::post('/tasks/{task}/complete-today', [TaskController::class, 'completeToday']);
-
 
     // Obter dados do usuário logado
     Route::get('/user', function (Request $request) {
