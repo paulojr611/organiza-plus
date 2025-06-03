@@ -86,6 +86,7 @@ const goals = computed(() => store.goals)
 
 const selectedDay = ref(new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()))
 
+
 const addSide = () => {
   menuStore.addMenuItem({ label: 'Nova Tarefa', icon: PaperClipIcon, route: '/NovaTarefa' })
 }

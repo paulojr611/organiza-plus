@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('title');
             $table->date('due_date')->nullable();
-            $table->json('recurrence')->nullable(); // removido ->after('due_date')
+            $table->string('status')->default('Não iniciada');
             $table->boolean('completed')->default(false);
             $table->timestamps();
         });
