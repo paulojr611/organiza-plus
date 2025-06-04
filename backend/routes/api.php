@@ -13,7 +13,6 @@ Route::post('/reset-password',   [ResetPasswordController::class, 'reset']);
 
 
 Route::middleware('auth:sanctum')->group(function () {
-    // Logout: revoga todos os tokens do usuário atual
     Route::post('/logout', [AuthController::class, 'logout']);
 
     // Tarefas CRUD
@@ -23,7 +22,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/tasks/{task}/status', [TaskController::class, 'updateStatus']);
     Route::delete('/tasks/{task}', [TaskController::class, 'destroy']);
 
-    // Obter dados do usuário logado
     Route::get('/user', function (Request $request) {
         return response()->json($request->user());
     });

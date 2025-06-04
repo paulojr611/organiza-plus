@@ -38,5 +38,17 @@ export const useStore = defineStore("main", {
             await axios.delete(`/tasks/${taskId}`);
             this.fetchTasks();
         },
+        async logout() {
+            try {
+                await axios.post("/logout");
+                this.user = null;
+                this.tasks = [];
+                localStorage.removeItem("token"); 
+                axios.defaults.headers.common["Authorization"] = null;
+            } catch (error) {
+                console.error("Erro ao fazer logout:", error);
+                throw error;
+            }
+        },
     },
 });

@@ -44,7 +44,7 @@ const handleSubmit = async () => {
   try {
     const { data } = await axios.post('/api/login', form)
 
-    localStorage.setItem('api_token', data.token)
+    localStorage.setItem('token', data.token)
     localStorage.setItem('user', JSON.stringify(data.user))
 
     axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`
@@ -59,6 +59,3 @@ const handleSubmit = async () => {
   }
 }
 </script>
-
-
-<style scoped></style>
