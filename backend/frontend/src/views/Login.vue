@@ -44,9 +44,9 @@ const handleSubmit = async () => {
   try {
     const { data } = await axios.post('/api/login', form)
 
-    localStorage.setItem('token', data.token)
+    localStorage.setItem('api_token', data.token)
     localStorage.setItem('user', JSON.stringify(data.user))
-
+    
     axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`
 
     console.log('Login bem-sucedido:', data)
