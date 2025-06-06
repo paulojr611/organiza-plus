@@ -5,6 +5,7 @@ import resetsenha from "../views/ResetSenha.vue";
 import dashboard from "../views/Dashboard.vue";
 import novatarefa from "../views/NovaTarefa.vue";
 import naoencontrada from "../views/NaoEncontrada.vue";
+import novameta from "../views/NovaMeta.vue";
 import { useStore } from "@/stores";
 
 const routes = [
@@ -40,6 +41,12 @@ const routes = [
         name: "NaoEncontrada",
         component: naoencontrada,
         meta: { layout: "public" },
+    },
+    {
+        path: "/NovaMeta",
+        name: "NovaMeta",
+        component: novameta,
+        meta: { requiresAuth: true },
     },
 ];
 
