@@ -6,6 +6,7 @@ import dashboard from "../views/Dashboard.vue";
 import novatarefa from "../views/NovaTarefa.vue";
 import naoencontrada from "../views/NaoEncontrada.vue";
 import novameta from "../views/NovaMeta.vue";
+import novolembrete from "../views/NovoLembrete.vue";
 import { useStore } from "@/stores";
 
 const routes = [
@@ -37,16 +38,22 @@ const routes = [
         meta: { requiresAuth: true },
     },
     {
-        path: "/:pathMatch(.*)*",
-        name: "NaoEncontrada",
-        component: naoencontrada,
-        meta: { layout: "public" },
-    },
-    {
         path: "/NovaMeta",
         name: "NovaMeta",
         component: novameta,
         meta: { requiresAuth: true },
+    },
+    {
+        path: "/NovoLembrete",
+        name: "NovaLembrete",
+        component: novolembrete,
+        meta: { requiresAuth: true },
+    },
+    {
+        path: "/:pathMatch(.*)*",
+        name: "NaoEncontrada",
+        component: naoencontrada,
+        meta: { layout: "public" },
     },
 ];
 

@@ -68,7 +68,7 @@
 
       <div class="bg-white p-4 rounded-2xl shadow">
         <h2 class="font-semibold mb-3">Calendário</h2>
-        <vc-calendar  class="w-full" is-expanded :attributes="calendarAttributes" @dayclick="goToDate" />
+        <vc-calendar class="w-full" is-expanded :attributes="calendarAttributes" @dayclick="goToDate" />
       </div>
 
       <!--METAS-->
@@ -171,7 +171,7 @@
 <script setup>
 import { ref, computed, onMounted, reactive, watch } from 'vue'
 import { useStore } from '@/stores'
-import { PaperClipIcon, CheckCircleIcon } from '@heroicons/vue/24/outline'
+import { PaperClipIcon, CheckCircleIcon, BellIcon } from '@heroicons/vue/24/outline'
 import { sidebar } from '../stores/menuSidebar'
 
 const menuStore = sidebar()
@@ -199,37 +199,31 @@ const editTaskId = ref(null)
 const editTaskTitle = ref('')
 
 
-const addSide = () => {
-  menuStore.addMenuItem({ label: 'Nova Tarefa', icon: PaperClipIcon, route: '/NovaTarefa' })
-  menuStore.addMenuItem({ label: 'Nova Meta', icon: CheckCircleIcon, route: '/NovaMeta' })
-}
-const removeSide = () => {
-  menuStore.removeAllMenuItems()
-}
+menuStore.removeAllMenuItems()
+menuStore.addMenuItem({ label: 'Nova Tarefa', icon: PaperClipIcon, route: '/NovaTarefa' })
+menuStore.addMenuItem({ label: 'Nova Meta', icon: CheckCircleIcon, route: '/NovaMeta' })
+menuStore.addMenuItem({ label: 'Lembretes', icon: BellIcon, route: '/NovoLembrete' })
+
+
+
 
 onMounted(async () => {
-  removeSide()
-  addSide()
-
   await store.fetchGoals()
   initializeGoalInputs()
 
   await store.fetchTasks()
 })
 
-// Se as metas mudam (criação/edição/exclusão), atualiza goalInputs
 watch(goals, () => {
   initializeGoalInputs()
 })
 
-// Preenche goalInputs com o completed de cada meta existente
 function initializeGoalInputs() {
   goals.value.forEach(g => {
     if (goalInputs[g.id] === undefined) {
       goalInputs[g.id] = g.completed
     }
   })
-  // Remove chaves que não existem mais em goals
   Object.keys(goalInputs).forEach(key => {
     if (!goals.value.find(g => g.id === Number(key))) {
       delete goalInputs[key]
@@ -237,12 +231,10 @@ function initializeGoalInputs() {
   })
 }
 
-// Navegação por data no calendário
 function goToDate(day) {
   selectedDay.value = day.date
 }
 
-// Filtra tarefas para o dia selecionado
 const todayTasks = computed(() => {
   return tasks.value.filter(task => {
     if (!task.due_date) return false
@@ -260,7 +252,6 @@ const filteredTasks = computed(() => {
   }
 })
 
-// Configurações do calendário (por enquanto só marca “hoje”)
 const calendarAttributes = ref([
   {
     key: 'today',
@@ -285,7 +276,6 @@ const progressBarColor = computed(() => {
   return 'bg-green-500'
 })
 
-// Ações sobre tarefas
 async function updateStatus(task, status) {
   try {
     await store.updateTaskStatus(task.id, status)
@@ -423,15 +413,23 @@ async function saveGoalEdit() {
   }
 }
 const filteredGoals = computed(() => {
-  // selectedDay.value já é um objeto Date
+  const selDateString = selectedDay.value.toISOString().split('T')[0];
   return goals.value.filter(goal => {
-    const start = new Date(goal.start_date)
-    const end = new Date(goal.end_date)
-    const sel = new Date(selectedDay.value.toDateString())
-    // compara se selectedDay está entre start e end (inclusive)
-    return sel >= start && sel <= end
-  })
-})
+    const startDateString = goal.start_date.split('T')[0];
+    const endDateString = goal.end_date.split('T')[0];
+    return selDateString >= startDateString && selDateString <= endDateString;
+  });
+});
 
 
+import { scheduleNotification } from "@/utils/notification";
+onMounted(async () => {
+  if ("Notification" in window && Notification.permission !== "granted") {
+    await Notification.requestPermission();
+  }
+
+  await store.fetchReminders();
+
+  store.reminders.forEach(scheduleNotification);
+});
 </script>

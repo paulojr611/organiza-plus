@@ -24,7 +24,7 @@ class GoalController extends Controller
         if ($request->has('completed')) {
             $goal->completed = $request->completed;
         }
-        
+
         if ($request->has('title')) {
             $goal->title = $request->title;
         }
@@ -59,7 +59,6 @@ class GoalController extends Controller
     {
         $this->authorize('delete', $goal);
         $goal->delete();
-
         return response()->json(['message' => 'Meta deletada com sucesso']);
     }
 
