@@ -4,13 +4,8 @@
     <form @submit.prevent="submitTask">
       <div class="mb-4">
         <label class="block mb-1 font-semibold">Título</label>
-        <input
-          v-model="form.title"
-          class="w-full border p-2 rounded-lg"
-          :class="{ 'border-red-500': errors.title }"
-          @input="errors.title = ''"
-          required
-        />
+        <input v-model="form.title" class="w-full border p-2 rounded-lg" :class="{ 'border-red-500': errors.title }"
+          @input="errors.title = ''" required />
         <p v-if="errors.title" class="text-red-500 text-sm mt-1">
           {{ errors.title }}
         </p>
@@ -18,22 +13,15 @@
 
       <div class="mb-4">
         <label class="block mb-1 font-semibold">Selecione as datas</label>
-        <vc-calendar
-          class="w-full"
-          :attributes="attributes"
-          :disabled-dates="disabledDatesArray"
-          @dayclick="onDayClick"
-        />
+        <vc-calendar class="w-full" :attributes="attributes" :disabled-dates="disabledDatesArray"
+          @dayclick="onDayClick" />
         <p v-if="errors.due_dates" class="text-red-500 text-sm mt-1">
           {{ errors.due_dates }}
         </p>
       </div>
 
-      <button
-        type="submit"
-        :disabled="loading"
-        class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50 flex items-center gap-2"
-      >
+      <button type="submit" :disabled="loading"
+        class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50 flex items-center gap-2">
         {{ loading ? 'Salvando...' : 'Salvar Tarefa' }}
       </button>
     </form>
@@ -45,16 +33,16 @@ import { reactive, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from '@/stores'
 import { sidebar } from '../stores/menuSidebar'
-import { ClipboardIcon, CheckCircleIcon } from '@heroicons/vue/24/outline'
+import { ClipboardIcon, CheckCircleIcon, BellIcon } from '@heroicons/vue/24/outline'
 
 const menuStore = sidebar()
-const removeSide = () => menuStore.removeAllMenuItems()
-const addSide = () => {
-  menuStore.addMenuItem({ label: 'Dashboard', icon: ClipboardIcon, route: '/Dashboard' })
-  menuStore.addMenuItem({ label: 'Nova Meta', icon: CheckCircleIcon, route: '/NovaMeta' })
-}
-removeSide()
-addSide()
+
+menuStore.removeAllMenuItems()
+menuStore.addMenuItem({ label: 'Dashboard', icon: ClipboardIcon, route: '/Dashboard' })
+menuStore.addMenuItem({ label: 'Nova Meta', icon: CheckCircleIcon, route: '/NovaMeta' })
+menuStore.addMenuItem({ label: 'Lembretes', icon: BellIcon, route: '/NovoLembrete' })
+
+
 
 const store = useStore()
 const router = useRouter()
@@ -62,7 +50,7 @@ const loading = ref(false)
 
 const form = reactive({
   title: '',
-  due_dates: [],  
+  due_dates: [],
 })
 const errors = reactive({
   title: '',
@@ -89,7 +77,6 @@ const attributes = computed(() =>
   }))
 )
 
-//Bloqueio de datas não funcionou, código abaixo serve pra impedir o clique
 const isDatePast = (date) => {
   const d = new Date(date)
   d.setHours(0, 0, 0, 0)

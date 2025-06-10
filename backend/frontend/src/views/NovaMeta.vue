@@ -46,7 +46,7 @@ import { ref } from 'vue'
 import { useStore } from '@/stores'
 import { useRouter } from 'vue-router'
 import { sidebar } from '../stores/menuSidebar'
-import { PaperClipIcon, ClipboardIcon } from '@heroicons/vue/24/outline'
+import { PaperClipIcon, ClipboardIcon, BellIcon } from '@heroicons/vue/24/outline'
 
 const menuStore = sidebar()
 const store = useStore()
@@ -55,6 +55,7 @@ const router = useRouter()
 const addSide = () => {
   menuStore.addMenuItem({ label: 'Dashboard', icon: ClipboardIcon, route: '/Dashboard' })
   menuStore.addMenuItem({ label: 'Nova Tarefa', icon: PaperClipIcon, route: '/NovaTarefa' })
+  menuStore.addMenuItem({ label: 'Novo Lembrete', icon: BellIcon, route: '/NovoLembrete' })
 }
 const removeSide = () => {
   menuStore.removeAllMenuItems()
@@ -84,6 +85,7 @@ async function submitGoal() {
     return
   }
 
+  // Criado antes de ter um "import { formatLocalDatetime } from "@/utils/date";" no index - corrigir quando tiver tempo
   goal.value.start_date = goalDateRange.value.start.toISOString().split('T')[0]
   goal.value.end_date = goalDateRange.value.end.toISOString().split('T')[0]
 

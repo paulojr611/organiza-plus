@@ -1,16 +1,17 @@
 import { defineStore } from "pinia";
 import axios from "@/axios";
 import { ref } from "vue";
+import { formatLocalDatetime } from "@/utils/date";
 
 export const useStore = defineStore("main", {
     state: () => ({
         user: ref(JSON.parse(localStorage.getItem("user") || "null")),
         tasks: [],
         goals: [],
+        reminders: [],
     }),
 
     actions: {
-
         async createTask({ form, errors, loading, selectedDays, router }) {
             errors.title = "";
             errors.due_dates = "";
@@ -72,7 +73,6 @@ export const useStore = defineStore("main", {
                 console.error("Erro ao buscar tarefas:", error);
             }
         },
-
         async updateTask(taskId, data) {
             try {
                 await axios.put(`/tasks/${taskId}`, data);
@@ -85,12 +85,10 @@ export const useStore = defineStore("main", {
                 throw error;
             }
         },
-
         async updateTaskStatus(taskId, status) {
             await axios.put(`/tasks/${taskId}/status`, { status });
             this.fetchTasks();
         },
-
         async deleteTask(taskId) {
             await axios.delete(`/tasks/${taskId}`);
             this.fetchTasks();
@@ -131,10 +129,6 @@ export const useStore = defineStore("main", {
                 throw error;
             }
         },
-        async fetchGoals() {
-            const response = await axios.get("/goals");
-            this.goals = response.data;
-        },
         async createGoal(goalData) {
             const response = await axios.post("/goals", goalData);
             this.goals.push(response.data);
@@ -145,6 +139,86 @@ export const useStore = defineStore("main", {
             } catch (error) {
                 console.error("Erro ao deletar meta:", error);
                 throw error;
+            }
+        },
+
+        async createReminder({
+            form,
+            errors,
+            selectedDate,
+            time,
+            loading,
+            router,
+        }) {
+            errors.title = "";
+            errors.remind_at = "";
+  
+            if (!form.title.trim()) {
+                errors.title = "O título é obrigatório";
+                return;
+            }
+  
+            if (!selectedDate.value || !time.value) {
+                errors.remind_at = "Data e horário são obrigatórios.";
+                return;
+            }
+  
+            loading.value = true;
+  
+            const [hours, minutes] = time.value.split(":");
+            const remindAt = new Date(selectedDate.value);
+            remindAt.setHours(hours, minutes, 0, 0);
+  
+            const formattedRemindAt = formatLocalDatetime(remindAt);
+            try {
+                const token = localStorage.getItem("api_token");
+  
+                await axios.post(
+                    "/reminders",
+                    {
+                        title: form.title,
+                        description: form.description,
+                        remind_at: remindAt.toISOString(),
+                    },
+                    {
+                        headers: { Authorization: `Bearer ${token}` },
+                    }
+                );
+  
+                alert("Lembrete criado com sucesso!");
+  
+                // Disparar notificação
+                if (Notification.permission === "granted") {
+                    new Notification("Lembrete criado!", {
+                        body: `Título: ${form.title}`,
+                    });
+                }
+  
+                form.title = "";
+                form.description = "";
+                selectedDate.value = null;
+                time.value = "12:00";
+  
+                router.push({ name: "Dashboard" });
+            } catch (e) {
+                if (e.response?.data?.errors) {
+                    Object.assign(errors, e.response.data.errors);
+                } else {
+                    alert("Erro ao criar lembrete.");
+                }
+            } finally {
+                loading.value = false;
+            }
+      },
+        async fetchReminders() {
+            try {
+                const token = localStorage.getItem("api_token");
+                const { data } = await axios.get("/reminders", {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                this.reminders = data;
+            } catch (err) {
+                console.error("Erro ao buscar lembretes:", err);
             }
         },
     },

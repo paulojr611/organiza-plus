@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ResetPasswordController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\GoalController;
+use App\Http\Controllers\ReminderController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -25,7 +26,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/goals', [GoalController::class, 'index']);
     Route::post('/goals', [GoalController::class, 'store']);
     Route::put('/goals/{goal}', [GoalController::class, 'update']);
-    Route::delete('/goals/{goal}', [GoalController::class, 'destroy']); 
+    Route::delete('/goals/{goal}', [GoalController::class, 'destroy']);
+
+    Route::get('/reminders', [ReminderController::class, 'index']);
+    Route::post('/reminders', [ReminderController::class, 'store']);
+    Route::delete('/reminders/{reminder}', [ReminderController::class, 'destroy']);
 
     Route::get('/user', function (Request $request) {
         return response()->json($request->user());

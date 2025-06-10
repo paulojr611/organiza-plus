@@ -2,6 +2,7 @@
 
 namespace App\Models;
 use App\Models\Task;
+use App\Models\Reminder;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -49,6 +50,10 @@ class User extends Authenticatable
     public function goals()
 {
     return $this->hasMany(Goal::class);
+}
+public function reminders()
+{
+    return $this->hasMany(Reminder::class);
 }
 
 }
