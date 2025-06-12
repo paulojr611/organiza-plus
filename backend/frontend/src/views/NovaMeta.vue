@@ -47,6 +47,9 @@ import { useStore } from '@/stores'
 import { useRouter } from 'vue-router'
 import { sidebar } from '../stores/menuSidebar'
 import { PaperClipIcon, ClipboardIcon, BellIcon } from '@heroicons/vue/24/outline'
+import { useToast } from 'vue-toastification' 
+
+const toast = useToast() 
 
 const menuStore = sidebar()
 const store = useStore()
@@ -81,20 +84,21 @@ const goalDateRange = ref({ start: null, end: null })
 
 async function submitGoal() {
   if (!goalDateRange.value.start || !goalDateRange.value.end) {
-    alert('Selecione o intervalo de datas.')
+    toast.warning('Selecione o intervalo de datas.') 
     return
   }
 
-  // Criado antes de ter um "import { formatLocalDatetime } from "@/utils/date";" no index - corrigir quando tiver tempo
   goal.value.start_date = goalDateRange.value.start.toISOString().split('T')[0]
   goal.value.end_date = goalDateRange.value.end.toISOString().split('T')[0]
 
   try {
     await store.createGoal(goal.value)
+    toast.success('Meta criada com sucesso!') 
     router.push('/dashboard')
   } catch (error) {
     console.error('Erro ao criar meta:', error)
-    alert('Erro ao criar meta.')
+    toast.error('Erro ao criar meta.') 
   }
 }
+
 </script>

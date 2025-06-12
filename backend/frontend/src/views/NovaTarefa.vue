@@ -34,15 +34,14 @@ import { useRouter } from 'vue-router'
 import { useStore } from '@/stores'
 import { sidebar } from '../stores/menuSidebar'
 import { ClipboardIcon, CheckCircleIcon, BellIcon } from '@heroicons/vue/24/outline'
-
+import { useToast } from 'vue-toastification' 
+const toast = useToast() 
 const menuStore = sidebar()
 
 menuStore.removeAllMenuItems()
 menuStore.addMenuItem({ label: 'Dashboard', icon: ClipboardIcon, route: '/Dashboard' })
 menuStore.addMenuItem({ label: 'Nova Meta', icon: CheckCircleIcon, route: '/NovaMeta' })
 menuStore.addMenuItem({ label: 'Lembretes', icon: BellIcon, route: '/NovoLembrete' })
-
-
 
 const store = useStore()
 const router = useRouter()
@@ -82,9 +81,10 @@ const isDatePast = (date) => {
   d.setHours(0, 0, 0, 0)
   return d < today
 }
+
 const onDayClick = ({ date }) => {
   if (isDatePast(date)) {
-    alert('Não é permitido selecionar datas anteriores a hoje.')
+    toast.warning('Não é permitido selecionar datas anteriores a hoje.') 
     return
   }
 
@@ -102,7 +102,24 @@ const onDayClick = ({ date }) => {
   form.due_dates = selectedDays.value.map((d) => d.date)
 }
 
-const submitTask = () => {
-  store.createTask({ form, errors, loading, selectedDays, router })
+const submitTask = async () => {
+  if (!form.title.trim()) {
+    toast.warning('O título da tarefa é obrigatório.') 
+    return
+  }
+
+  if (!form.due_dates.length) {
+    toast.warning('Selecione ao menos uma data.') 
+    return
+  }
+
+  try {
+    await store.createTask({ form, errors, loading, selectedDays, router })
+    toast.success('Tarefa criada com sucesso!') 
+    router.push('/dashboard')
+  } catch (err) {
+    toast.error('Erro ao criar tarefa.') 
+    console.error('Erro ao criar tarefa:', err)
+  }
 }
 </script>

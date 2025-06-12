@@ -3,9 +3,79 @@
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-2xl font-bold">Olá, {{ user.name }}!</h1>
     </div>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 flex-1 overflow-auto">
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1 overflow-auto">
+      <div class="bg-white p-4 rounded-2xl shadow flex flex-col">
+        <div>
+          <h2 class="font-semibold mb-3">Calendário</h2>
+          <vc-calendar class="w-full mb-6" is-expanded :attributes="calendarAttributes" @dayclick="goToDate" />
+        </div>
+
+        <h2 class="text-xl font-semibold mb-4">
+          Lembretes de {{ selectedDay.toLocaleDateString('pt-BR') }}
+        </h2>
+        <ul class="space-y-4 overflow-y-auto max-h-96">
+          <li v-for="rem in filteredReminders" :key="rem.id"
+            class="flex justify-between items-start bg-blue-50 p-4 rounded-xl border border-blue-100">
+            <div>
+              <h3 class="font-medium text-blue-800">{{ rem.title }}</h3>
+              <small class="text-xs text-gray-600">{{ formatReminderTime(rem.remind_at) }}</small>
+            </div>
+          </li>
+          <li v-if="!filteredReminders.length" class="text-center text-gray-400">
+            Sem lembretes para este dia.
+          </li>
+        </ul>
+      </div>
+
+      <!--METAS-->
       <div class="bg-white p-4 rounded-2xl shadow">
+        <h2 class="font-semibold mb-3">Progresso das Metas</h2>
+
+        <div v-for="goal in filteredGoals" :key="goal.id" class="mb-5 p-4 rounded-lg border border-gray-100 bg-gray-50">
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <span class="text-base md:text-lg font-semibold block">{{ goal.title }}</span>
+              <span class="text-xs text-gray-500 block">
+                {{ formatDate(goal.start_date) }} até {{ formatDate(goal.end_date) }}
+              </span>
+            </div>
+
+            <div class="flex gap-2 text-xl">
+              <button @click="editGoal(goal)" class="text-blue-500 hover:text-blue-700" title="Editar Meta">
+                ✏️
+              </button>
+              <button @click="openConfirmGoal(goal.id)" class="text-red-500 hover:text-red-700" title="Excluir Meta">
+                🗑️
+              </button>
+            </div>
+          </div>
+
+          <div class="flex flex-col md:flex-row justify-between items-center mb-3 space-y-2 md:space-y-0">
+            <div class="flex items-center space-x-2">
+              <label :for="'completed-' + goal.id" class="text-sm text-gray-600">
+                Concluído:
+              </label>
+              <input :id="'completed-' + goal.id" v-model.number="goalInputs[goal.id]" type="number" min="0"
+                :max="goal.target_value" @blur="saveGoalProgress(goal)" @keyup.enter="saveGoalProgress(goal)"
+                class="w-20 border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200" />
+              <span class="text-sm text-gray-500">
+                / {{ goal.target_value }}
+              </span>
+            </div>
+
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+            <div class="h-4 transition-width duration-500 rounded-full"
+              :class="goalProgressColor(goalProgressPercent(goalInputs[goal.id], goal.target_value))"
+              :style="{ width: goalProgressPercent(goalInputs[goal.id], goal.target_value) + '%' }"></div>
+          </div>
+        </div>
+        <p v-if="!filteredGoals.length" class="text-gray-500 text-sm">Sem metas definidas.</p>
+      </div>
+
+      <!--TAREFAS-->
+      <div class="bg-white p-4 rounded-2xl shadow col-span-2">
         <h2 class="font-semibold mb-3">
           Tarefas de {{ selectedDay.toLocaleDateString('pt-BR') }}
         </h2>
@@ -39,7 +109,7 @@
                   aria-label="Editar tarefa">
                   ✏️
                 </button>
-                <button @click="deleteTask(task)" class="text-red-600 hover:text-red-800" aria-label="Excluir tarefa">
+                <button @click="openConfirmTask(task.id)" class="text-red-600 hover:text-red-800" aria-label="Excluir tarefa">
                   🗑️
                 </button>
               </div>
@@ -64,60 +134,6 @@
           </li>
           <li v-if="!filteredTasks.length" class="text-gray-500">Nenhuma tarefa.</li>
         </ul>
-      </div>
-
-      <div class="bg-white p-4 rounded-2xl shadow">
-        <h2 class="font-semibold mb-3">Calendário</h2>
-        <vc-calendar class="w-full" is-expanded :attributes="calendarAttributes" @dayclick="goToDate" />
-      </div>
-
-      <!--METAS-->
-      <div class="bg-white p-4 rounded-2xl shadow">
-        <h2 class="font-semibold mb-3">Progresso das Metas</h2>
-
-        <div v-for="goal in filteredGoals" :key="goal.id" class="mb-5 p-4 rounded-lg border border-gray-100 bg-gray-50">
-          <div class="flex justify-between items-start mb-2">
-            <div>
-              <span class="text-base md:text-lg font-semibold block">{{ goal.title }}</span>
-              <span class="text-xs text-gray-500 block">
-                {{ formatDate(goal.start_date) }} até {{ formatDate(goal.end_date) }}
-              </span>
-            </div>
-
-            <div class="flex gap-2 text-xl">
-              <button @click="editGoal(goal)" class="text-blue-500 hover:text-blue-700" title="Editar Meta">
-                ✏️
-              </button>
-              <button @click="deleteGoal(goal.id)" class="text-red-500 hover:text-red-700" title="Excluir Meta">
-                🗑️
-              </button>
-            </div>
-          </div>
-
-          <div class="flex flex-col md:flex-row justify-between items-center mb-3 space-y-2 md:space-y-0">
-            <div class="flex items-center space-x-2">
-              <label :for="'completed-' + goal.id" class="text-sm text-gray-600">
-                Concluído:
-              </label>
-              <input :id="'completed-' + goal.id" v-model.number="goalInputs[goal.id]" type="number" min="0"
-                :max="goal.target_value" @blur="saveGoalProgress(goal)" @keyup.enter="saveGoalProgress(goal)"
-                class="w-20 border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200" />
-              <span class="text-sm text-gray-500">
-                / {{ goal.target_value }}
-              </span>
-            </div>
-
-          </div>
-          <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
-            <div class="h-4 transition-width duration-500 rounded-full"
-              :class="goalProgressColor(goalProgressPercent(goalInputs[goal.id], goal.target_value))"
-              :style="{ width: goalProgressPercent(goalInputs[goal.id], goal.target_value) + '%' }"></div>
-          </div>
-
-
-        </div>
-
-        <p v-if="!goals.length" class="text-gray-500 text-sm">Sem metas definidas.</p>
       </div>
     </div>
 
@@ -164,21 +180,45 @@
         </form>
       </div>
     </div>
+    <dialog ref="confirmDialogGoal" class="rounded-2xl p-6 bg-white shadow-lg">
+      <p class="text-lg mb-4">Deseja realmente excluir esta meta?</p>
+      <div class="flex justify-end gap-3">
+        <button @click="cancelGoal" class="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">
+          Cancelar
+        </button>
+        <button @click="confirmDeleteGoal" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700">
+          Excluir
+        </button>
+      </div>
+    </dialog>
+    <dialog ref="confirmDialogTask" class="rounded-2xl p-6 bg-white shadow-lg">
+      <p class="text-lg mb-4">Deseja realmente excluir esta tarefa?</p>
+      <div class="flex justify-end gap-3">
+        <button @click="cancelTask" class="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">
+          Cancelar
+        </button>
+        <button @click="confirmDeleteTask" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700">
+          Excluir
+        </button>
+      </div>
+    </dialog>
   </div>
 </template>
-
 
 <script setup>
 import { ref, computed, onMounted, reactive, watch } from 'vue'
 import { useStore } from '@/stores'
 import { PaperClipIcon, CheckCircleIcon, BellIcon } from '@heroicons/vue/24/outline'
 import { sidebar } from '../stores/menuSidebar'
+import { useToast } from 'vue-toastification'
 
+const toast = useToast()
 const menuStore = sidebar()
 const store = useStore()
 const user = computed(() => store.user)
 const tasks = computed(() => store.tasks)
 const goals = computed(() => store.goals)
+const reminders = computed(() => store.reminders) //
 
 const selectedDay = ref(
   new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate())
@@ -205,6 +245,62 @@ menuStore.addMenuItem({ label: 'Nova Meta', icon: CheckCircleIcon, route: '/Nova
 menuStore.addMenuItem({ label: 'Lembretes', icon: BellIcon, route: '/NovoLembrete' })
 
 
+// Pontinhos no calendário 
+const calendarAttributes = computed(() => {
+  const attrs = []
+
+  const todayTs = new Date()
+  todayTs.setHours(0, 0, 0, 0)
+  attrs.push({
+    key: 'hoje',
+    dates: todayTs,
+    highlight: { fillMode: 'light' },
+    order: 98,
+  })
+
+
+  function groupByDay(items, dateKey) {
+    const map = new Map()
+    items.forEach(item => {
+      const ts = new Date(item[dateKey]).setHours(0, 0, 0, 0)
+      if (!map.has(ts)) map.set(ts, [])
+      map.get(ts).push(item)
+    })
+    return map
+  }
+
+  if (store.tasks.length) {
+    const tasksByDay = groupByDay(store.tasks, 'due_date')
+    for (const [ts, tasks] of tasksByDay.entries()) {
+      attrs.push({
+        key: `tarefas-${ts}`,
+        dates: ts,
+        dot: { color: 'blue' },
+        popover: {
+          label: tasks.map(t => `• ${t.title}`).join('\n'),
+        },
+        order: 1,
+      })
+    }
+  }
+
+  if (store.reminders.length) {
+    const remByDay = groupByDay(store.reminders, 'remind_at')
+    for (const [ts, rems] of remByDay.entries()) {
+      attrs.push({
+        key: `lembretes-${ts}`,
+        dates: ts,
+        dot: { color: 'red' },
+        popover: {
+          label: rems.map(r => `• ${r.title}`).join('\n'),
+        },
+        order: 2,
+      })
+    }
+  }
+
+  return attrs
+})
 
 
 onMounted(async () => {
@@ -212,24 +308,18 @@ onMounted(async () => {
   initializeGoalInputs()
 
   await store.fetchTasks()
+  await store.fetchReminders();
+  store.reminders = store.reminders.map(r => {
+    const dt = new Date(r.remind_at);
+    const corrected = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000);
+    const localIso = corrected.toISOString().replace(/Z$/, '');
+    return { ...r, remind_at: localIso };
+  });
 })
 
 watch(goals, () => {
   initializeGoalInputs()
 })
-
-function initializeGoalInputs() {
-  goals.value.forEach(g => {
-    if (goalInputs[g.id] === undefined) {
-      goalInputs[g.id] = g.completed
-    }
-  })
-  Object.keys(goalInputs).forEach(key => {
-    if (!goals.value.find(g => g.id === Number(key))) {
-      delete goalInputs[key]
-    }
-  })
-}
 
 function goToDate(day) {
   selectedDay.value = day.date
@@ -252,15 +342,71 @@ const filteredTasks = computed(() => {
   }
 })
 
-const calendarAttributes = ref([
-  {
-    key: 'today',
-    highlight: true,
-    dates: new Date(),
-  },
-])
 
-// Progress bar de tarefas
+
+
+function initializeGoalInputs() {
+  goals.value.forEach(g => {
+    if (goalInputs[g.id] === undefined) {
+      goalInputs[g.id] = g.completed
+    }
+  })
+  Object.keys(goalInputs).forEach(key => {
+    if (!goals.value.find(g => g.id === Number(key))) {
+      delete goalInputs[key]
+    }
+  })
+}
+
+const confirmDialogGoal = ref(null)
+const confirmDialogTask = ref(null)
+const deletingId = ref(null)
+
+function openConfirmGoal(id) {
+  deletingId.value = id
+  confirmDialogGoal.value.showModal()
+}
+function openConfirmTask(id) {
+  deletingId.value = id
+  confirmDialogTask.value.showModal()
+}
+function cancelGoal() {
+  confirmDialogGoal.value.close()
+  deletingId.value = null
+}
+function cancelTask() {
+  confirmDialogTask.value.close()
+  deletingId.value = null
+}
+
+async function confirmDeleteGoal() {
+  try {
+    await store.deleteGoal(deletingId.value)
+    toast.success('Meta excluída com sucesso!')
+  } catch (err) {
+    toast.error('Erro ao excluir meta.')
+    console.error('Erro ao excluir meta:', err)
+  } finally {
+    confirmDialogGoal.value.close()
+    deletingId.value = null  
+    await store.fetchGoals()
+  }
+}
+async function confirmDeleteTask() {
+  try {
+    await store.deleteTask(deletingId.value)
+    toast.success('Tarefa excluída com sucesso!')
+  } catch (err) {
+    toast.error('Erro ao excluir tarefa.')
+    console.error('Erro ao excluir tarefa:', err)
+  } finally {
+    confirmDialogTask.value.close()
+    deletingId.value = null  
+    await store.fetchTasks()
+  }
+}
+
+
 const completed = computed(() => todayTasks.value.filter(t => t.status === 'Concluída').length)
 const total = computed(() => todayTasks.value.length)
 
@@ -306,19 +452,14 @@ async function saveEdit() {
     isEditing.value = false
     editTaskId.value = null
     editTaskTitle.value = ''
+    toast.success('Nome da tarefa alterada!')
     await store.fetchTasks()
   } catch (error) {
     console.error('Erro ao salvar edição:', error)
   }
 }
 
-async function deleteTask(task) {
-  try {
-    await store.deleteTask(task.id)
-  } catch (error) {
-    console.error('Erro ao excluir tarefa:', error)
-  }
-}
+
 
 const cardClassByStatus = status => {
   switch (status) {
@@ -332,6 +473,8 @@ const cardClassByStatus = status => {
       return 'bg-gray-100 shadow'
   }
 }
+
+
 
 
 const goalInputs = reactive({})
@@ -368,16 +511,6 @@ async function saveGoalProgress(goal) {
   }
 }
 
-async function deleteGoal(goalId) {
-  if (!confirm('Tem certeza que deseja excluir esta meta?')) return
-
-  try {
-    await store.deleteGoal(goalId)
-    await store.fetchGoals()
-  } catch (error) {
-    console.error('Erro ao excluir meta:', error)
-  }
-}
 
 const isEditingGoal = ref(false)
 const editGoalId = ref(null)
@@ -399,6 +532,7 @@ async function saveGoalEdit() {
   try {
     const goal = store.goals.find(g => g.id === editGoalId.value)
     if (!goal) throw new Error('Meta não encontrada.')
+    toast.success('Nome da meta alterada!') //gambiarra, tá confirmando sem ter certeza se vai dar erro
 
     await store.updateGoal(editGoalId.value, {
       title: editGoalTitle.value,
@@ -421,15 +555,52 @@ const filteredGoals = computed(() => {
   });
 });
 
-
 import { scheduleNotification } from "@/utils/notification";
+
+
+
+
+
+
 onMounted(async () => {
   if ("Notification" in window && Notification.permission !== "granted") {
     await Notification.requestPermission();
   }
 
   await store.fetchReminders();
-
-  store.reminders.forEach(scheduleNotification);
+  /*
+    reminders.value = store.reminders.map(r => ({
+      ...r,
+      remind_at: typeof r.remind_at === 'string'
+        ? new Date(r.remind_at.replace(' ', 'T'))
+        : r.remind_at
+    }));
+  */
+  reminders.value.forEach(r => scheduleNotification(r));
 });
+
+const filteredReminders = computed(() => {
+  return reminders.value
+    .map(r => ({
+      ...r,
+      remind_at: typeof r.remind_at === 'string'
+        ? new Date(r.remind_at.replace(' ', 'T'))
+        : r.remind_at
+    }))
+    .filter(r => {
+      const dt = r.remind_at;
+      return (
+        dt.getFullYear() === selectedDay.value.getFullYear() &&
+        dt.getMonth() === selectedDay.value.getMonth() &&
+        dt.getDate() === selectedDay.value.getDate()
+      );
+    });
+});
+
+function formatReminderTime(dt) {
+  return dt instanceof Date
+    ? dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    : '';
+}
+
 </script>
