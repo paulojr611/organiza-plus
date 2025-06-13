@@ -7,11 +7,17 @@ import novatarefa from "../views/NovaTarefa.vue";
 import naoencontrada from "../views/NaoEncontrada.vue";
 import novameta from "../views/NovaMeta.vue";
 import novolembrete from "../views/NovoLembrete.vue";
+import convite from "../views/Convite.vue";
 import { useStore } from "@/stores";
 
 const routes = [
     {
         path: "/",
+        name: "Convite",
+        component: convite,
+    },
+    {
+        path: "/login",
         name: "Login",
         component: login,
     },
