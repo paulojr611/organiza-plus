@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import axios from "@/axios";
 import { ref } from "vue";
 import { formatLocalDatetime } from "@/utils/date";
+import { scheduleNotification } from "@/utils/notification";
 
 export const useStore = defineStore("main", {
     state: () => ({
@@ -45,7 +46,7 @@ export const useStore = defineStore("main", {
                     }
                 );
 
-                alert("Tarefa criada com sucesso!");
+               
                 form.title = "";
                 form.due_dates = [];
                 selectedDays.value = [];
@@ -152,73 +153,109 @@ export const useStore = defineStore("main", {
         }) {
             errors.title = "";
             errors.remind_at = "";
-  
+
             if (!form.title.trim()) {
                 errors.title = "O título é obrigatório";
                 return;
             }
-  
             if (!selectedDate.value || !time.value) {
                 errors.remind_at = "Data e horário são obrigatórios.";
                 return;
             }
-  
+
             loading.value = true;
-  
-            const [hours, minutes] = time.value.split(":");
-            const remindAt = new Date(selectedDate.value);
-            remindAt.setHours(hours, minutes, 0, 0);
-  
-            const formattedRemindAt = formatLocalDatetime(remindAt);
             try {
+                const [hours, minutes] = time.value.split(":").map(Number);
+                const remindAtDate = new Date(selectedDate.value);
+                remindAtDate.setHours(hours, minutes, 0, 0);
+
+                const formattedRemindAt = formatLocalDatetime(remindAtDate);
                 const token = localStorage.getItem("api_token");
-  
-                await axios.post(
+                const response = await axios.post(
                     "/reminders",
                     {
                         title: form.title,
                         description: form.description,
-                        remind_at: remindAt.toISOString(),
+                        remind_at: formattedRemindAt,
                     },
-                    {
-                        headers: { Authorization: `Bearer ${token}` },
-                    }
+                    { headers: { Authorization: `Bearer ${token}` } }
                 );
-  
-                alert("Lembrete criado com sucesso!");
-  
-                // Disparar notificação
+                const reminder = response.data;
+
                 if (Notification.permission === "granted") {
                     new Notification("Lembrete criado!", {
-                        body: `Título: ${form.title}`,
+                        body: reminder.title,
                     });
                 }
-  
+
+                scheduleNotification({
+                    ...reminder,
+                    remind_at: remindAtDate,
+                });
+
                 form.title = "";
                 form.description = "";
                 selectedDate.value = null;
                 time.value = "12:00";
-  
                 router.push({ name: "Dashboard" });
+
+                return reminder;
             } catch (e) {
                 if (e.response?.data?.errors) {
                     Object.assign(errors, e.response.data.errors);
                 } else {
                     alert("Erro ao criar lembrete.");
                 }
+                throw e;
             } finally {
                 loading.value = false;
             }
-      },
+        },
+
         async fetchReminders() {
+            const token = localStorage.getItem("api_token");
+            const { data } = await axios.get("/reminders", {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            this.reminders = data.map((r) => ({
+                ...r,
+                // antes: new Date(r.remind_at.replace(/Z$/, "")),
+                // agora:
+                remind_at: new Date(r.remind_at),
+            }));
+        },
+
+        async updateReminder(id, payload) {
             try {
                 const token = localStorage.getItem("api_token");
-                const { data } = await axios.get("/reminders", {
+                const toSend = {
+                    ...payload,
+                    remind_at:
+                        typeof payload.remind_at === "string"
+                            ? payload.remind_at.replace(/Z$/, "")
+                            : payload.remind_at.toISOString().replace(/Z$/, ""),
+                };
+
+                await axios.put(`/reminders/${id}`, toSend, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
-                this.reminders = data;
+                await this.fetchReminders();
+                this.reminders.forEach(scheduleNotification);
             } catch (err) {
-                console.error("Erro ao buscar lembretes:", err);
+                console.error("Erro ao atualizar lembrete:", err);
+            }
+        },
+
+        async deleteReminder(id) {
+            try {
+                const token = localStorage.getItem("api_token");
+                await axios.delete(`/reminders/${id}`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                await this.fetchReminders();
+                this.reminders.forEach(scheduleNotification);
+            } catch (err) {
+                console.error("Erro ao excluir lembrete:", err);
             }
         },
     },
