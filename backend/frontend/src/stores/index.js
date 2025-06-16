@@ -21,7 +21,6 @@ export const useStore = defineStore("main", {
                 errors.title = "O título é obrigatório";
                 return;
             }
-
             if (form.due_dates.length === 0) {
                 errors.due_dates = "Selecione pelo menos uma data";
                 return;
@@ -35,21 +34,23 @@ export const useStore = defineStore("main", {
                     new Date(d).toISOString().slice(0, 10)
                 );
 
-                await axios.post(
-                    "/tasks",
-                    {
-                        title: form.title,
-                        due_date: formattedDates,
-                    },
-                    {
-                        headers: { Authorization: `Bearer ${token}` },
-                    }
-                );
+                const payload = {
+                    title: form.title,
+                    due_date: formattedDates,
+                    subtasks: form.subtasks.map((s) => ({
+                        title: s.title,
+                    })),
+                };
 
-               
+                await axios.post("/tasks", payload, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+
+                // limpa form e selecionados
                 form.title = "";
                 form.due_dates = [];
                 selectedDays.value = [];
+                form.subtasks = []; // <— limpa também as subtarefas
                 router.push({ name: "Dashboard" });
             } catch (err) {
                 if (err.response?.status === 422 && err.response.data.errors) {
@@ -256,6 +257,47 @@ export const useStore = defineStore("main", {
                 this.reminders.forEach(scheduleNotification);
             } catch (err) {
                 console.error("Erro ao excluir lembrete:", err);
+            }
+        },
+
+        async fetchSubtasksByDate(dateStr) {
+            this.loading = true;
+            this.error = null;
+            try {
+                const token = localStorage.getItem("api_token");
+                const { data } = await axios.get(`/subtasks?date=${dateStr}`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                this.subtasks = data;
+            } catch (err) {
+                console.error("Erro ao carregar subtarefas:", err);
+                this.error = err;
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async updateSubtaskStatus(subtaskId, status) {
+            const token = localStorage.getItem("api_token");
+            await axios.put(
+                `/subtasks/${subtaskId}`,
+                { status },
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                }
+            );
+        },
+
+        async deleteSubtask(id) {
+            try {
+                const token = localStorage.getItem("api_token");
+                await axios.delete(`/subtasks/${id}`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                this.subtasks = this.subtasks.filter((s) => s.id !== id);
+            } catch (err) {
+                console.error("Erro ao deletar subtarefa:", err);
+                throw err;
             }
         },
     },

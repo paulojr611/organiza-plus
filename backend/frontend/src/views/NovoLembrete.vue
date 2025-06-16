@@ -1,14 +1,10 @@
 <template>
-  <!-- Container com altura máxima da viewport, mas sem estender além -->
   <div class="max-h-screen w-full max-w-5xl mx-auto p-6 bg-white rounded-2xl shadow flex flex-col overflow-hidden mt-4">
-    <!-- Cabeçalho fixo -->
     <header class="flex-none mb-4">
       <h1 class="text-3xl font-bold">Gerenciar Lembretes</h1>
     </header>
 
-    <!-- Conteúdo flexível e scroll interno apenas onde necessário -->
     <main class="flex-1 flex gap-8 overflow-hidden">
-      <!-- Formulário: rolagem interna se exceder, respeita altura do container -->
       <section class="flex-1 bg-gray-50 rounded-xl p-4 flex flex-col overflow-y min-h-0">
         <h2 class="text-2xl font-semibold mb-4">Novo Lembrete</h2>
         <form @submit.prevent="submitReminder" class="space-y-4">
@@ -56,7 +52,6 @@
         </form>
       </section>
 
-      <!-- Dashboard de Lembretes Cadastrados -->
       <section class="flex-1 bg-gray-50 rounded-xl p-4 flex flex-col overflow-y-auto min-h-0">
         <h2 class="text-2xl font-semibold mb-4">Lembretes Cadastrados</h2>
         <div v-if="reminders.length" class="space-y-3">
@@ -77,7 +72,6 @@
       </section>
     </main>
 
-    <!-- Dialog nativo de confirmação -->
     <dialog ref="confirmDialog" class="rounded-2xl p-6 bg-white shadow-lg">
       <p class="text-lg mb-4">Deseja realmente excluir este lembrete?</p>
       <div class="flex justify-end gap-3">

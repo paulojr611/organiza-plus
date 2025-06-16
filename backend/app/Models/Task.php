@@ -37,4 +37,10 @@ class Task extends Model
         return $this->completions()->whereDate('date', today())->exists();
     }
 
+    public function subtasks()
+    {
+        return $this->hasMany(Subtask::class);
+    }
+
+
 }
