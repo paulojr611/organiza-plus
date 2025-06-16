@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Task;
+use App\Models\Subtask;
 use Illuminate\Http\Request;
 use App\Models\TaskCompletion;
 
@@ -13,10 +14,11 @@ class TaskController extends Controller
         $user = $request->user();
 
         $tasks = $user->tasks()
+            ->with('subtasks')        
             ->orderBy('due_date')
             ->get();
 
-        return $tasks;
+        return response()->json($tasks);
     }
 
     public function updateStatus(Request $request, Task $task)
@@ -36,42 +38,59 @@ class TaskController extends Controller
         return response()->json(['message' => 'Status atualizado com sucesso!', 'task' => $task]);
     }
 
-  public function store(Request $request)
-{
-    $hasMultipleDates = is_array($request->due_date);
+    public function store(Request $request)
+    {
+        $hasMultipleDates = is_array($request->due_date);
 
-    $validated = $request->validate([
-        'title' => 'required|string|max:255',
-        'due_date' => $hasMultipleDates ? 'required|array|min:1' : 'required|date',
-        'due_date.*' => $hasMultipleDates ? 'required|date' : '',
-    ]);
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'due_date' => $hasMultipleDates
+                ? 'required|array|min:1'
+                : 'required|date',
+            'due_date.*' => $hasMultipleDates
+                ? 'required|date'
+                : '',
+            'subtasks' => 'nullable|array',
+            'subtasks.*.title' => 'required_with:subtasks|string|max:255',
+            'subtasks.*.status' => 'in:Não iniciada,Em andamento,Concluída',
+        ]);
 
-    $userId = auth()->id();
-    $tasks = [];
+        $userId = auth()->id();
+        $created = [];
 
-    if ($hasMultipleDates) {
-        foreach ($validated['due_date'] as $date) {
-            $tasks[] = Task::create([
+        $dates = $hasMultipleDates
+            ? $validated['due_date']
+            : [$validated['due_date']];
+
+        foreach ($dates as $date) {
+            $task = Task::create([
                 'user_id' => $userId,
                 'title' => $validated['title'],
                 'due_date' => $date,
                 'completed' => false,
             ]);
+
+            if (!empty($validated['subtasks'])) {
+                foreach ($validated['subtasks'] as $sub) {
+                    $task->subtasks()->create([
+                        'title' => $sub['title'],
+                        'status' => $sub['status'] ?? 'Não iniciada',
+                    ]);
+                }
+                $task->load('subtasks');
+            }
+
+            $created[] = $task;
         }
-    } else {
-        $tasks[] = Task::create([
-            'user_id' => $userId,
-            'title' => $validated['title'],
-            'due_date' => $validated['due_date'],
-            'completed' => false,
-        ]);
+
+        return response()->json([
+            'message' => count($created) > 1
+                ? 'Tarefas criadas com sucesso!'
+                : 'Tarefa criada com sucesso!',
+            'data' => $created,
+        ], 201);
     }
 
-    return response()->json([
-        'message' => count($tasks) > 1 ? 'Tarefas criadas com sucesso!' : 'Tarefa criada com sucesso!',
-        'data' => $tasks,
-    ], 201);
-}
 
 
     public function update(Request $request, Task $task)

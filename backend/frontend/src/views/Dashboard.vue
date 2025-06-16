@@ -75,19 +75,23 @@
       </div>
 
       <!--TAREFAS-->
-      <div class="bg-white p-4 rounded-2xl shadow col-span-2">
+      <div class="bg-white p-4 rounded-2xl shadow col-span-2
+         max-h-[calc(100vh-3.5rem-4rem)] overflow-y-auto">
         <h2 class="font-semibold mb-3">
           Tarefas de {{ selectedDay.toLocaleDateString('pt-BR') }}
         </h2>
+
         <div class="mb-4">
           <div class="flex justify-between text-sm mb-1">
             <span>Progresso</span>
           </div>
           <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
             <div class="h-4 transition-all duration-300" :class="progressBarColor"
-              :style="{ width: progressPercent + '%' }"></div>
+              :style="{ width: progressPercent + '%' }">
+            </div>
           </div>
         </div>
+
         <nav class="flex space-x-6 border-b border-gray-200 mb-5" aria-label="Filtro de status">
           <button v-for="option in statusOptions" :key="option" @click="statusFilter = option" type="button" :class="[
             'pb-2 font-medium text-sm transition-colors',
@@ -99,22 +103,34 @@
           </button>
         </nav>
 
+        <!-- Lista de tarefas -->
         <ul class="space-y-4">
           <li v-for="task in filteredTasks" :key="task.id"
             class="p-4 bg-gray-100 rounded-2xl shadow flex flex-col space-y-2">
+
+            <!-- Cabeçalho -->
             <div class="flex justify-between items-start">
               <h3 class="font-semibold text-lg">{{ task.title }}</h3>
-              <div class="flex space-x-2">
+              <div class="flex space-x-2 items-center">
+                <!-- Botão expandir/retrair -->
+                <button v-if="task.subtasks && task.subtasks.length > 0" @click="toggleExpanded(task.id)"
+                  class="text-blue-600 hover:text-blue-800" aria-label="Expandir subtarefas">
+                  <span v-if="expandedTasks.includes(task.id)">🔽</span>
+                  <span v-else>▶️</span>
+                </button>
+
                 <button @click="editTask(task)" class="text-yellow-600 hover:text-yellow-800"
                   aria-label="Editar tarefa">
                   ✏️
                 </button>
-                <button @click="openConfirmTask(task.id)" class="text-red-600 hover:text-red-800" aria-label="Excluir tarefa">
+                <button @click="openConfirmTask(task.id)" class="text-red-600 hover:text-red-800"
+                  aria-label="Excluir tarefa">
                   🗑️
                 </button>
               </div>
             </div>
 
+            <!-- Status -->
             <div
               :class="cardClassByStatus(task.status) + ' flex items-center space-x-2 flex-wrap p-3 rounded-xl transition-all duration-300'">
               <span class="text-sm text-gray-600">Status:</span>
@@ -131,11 +147,42 @@
                 Concluída
               </button>
             </div>
+
+            <!-- Subtarefas -->
+            <transition name="fade">
+              <ul v-if="expandedTasks.includes(task.id)" class="ml-4 mt-3 space-y-2">
+                <li v-for="sub in task.subtasks" :key="sub.id" class="flex items-center text-sm">
+                  <label class="inline-flex items-center cursor-pointer">
+                    <input type="checkbox" :checked="sub.status === 'Concluída'" @change="toggleSubtask(sub, task)"
+                      class="peer sr-only" />
+
+                    <div
+                      class="w-5 h-5 rounded border-2 border-gray-400 peer-checked:border-blue-600 peer-checked:bg-blue-600 flex items-center justify-center transition">
+                      <svg v-if="sub.status === 'Concluída'" xmlns="http://www.w3.org/2000/svg"
+                        class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+
+                    <span :class="{ 'line-through text-gray-400': sub.status === 'Concluída' }" class="ml-2">
+                      {{ sub.title }}
+                    </span>
+                  </label>
+
+                </li>
+              </ul>
+            </transition>
+
           </li>
+
+          <!-- Sem tarefas -->
           <li v-if="!filteredTasks.length" class="text-gray-500">Nenhuma tarefa.</li>
         </ul>
       </div>
+
     </div>
+
+
 
     <div v-if="isEditing" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
       @click.self="closeEditModal">
@@ -218,7 +265,9 @@ const store = useStore()
 const user = computed(() => store.user)
 const tasks = computed(() => store.tasks)
 const goals = computed(() => store.goals)
-const reminders = computed(() => store.reminders) //
+const reminders = computed(() => store.reminders)
+
+
 
 const selectedDay = ref(
   new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate())
@@ -342,6 +391,34 @@ const filteredTasks = computed(() => {
   }
 })
 
+const expandedTasks = ref([])
+
+const toggleExpanded = (taskId) => {
+  if (expandedTasks.value.includes(taskId)) {
+    expandedTasks.value = expandedTasks.value.filter(id => id !== taskId)
+  } else {
+    expandedTasks.value.push(taskId)
+  }
+}
+
+const toggleSubtask = async (sub, task) => {
+  const newStatus = sub.status === "Concluída" ? "Não iniciada" : "Concluída";
+
+  try {
+    await store.updateSubtaskStatus(sub.id, newStatus);
+    sub.status = newStatus;
+
+    // Se a task estiver "Não iniciada", muda pra "Em andamento"
+    if (task.status === "Não iniciada") {
+      await store.updateTaskStatus(task.id, "Em andamento");
+    }
+  } catch (err) {
+    console.error("Erro ao atualizar subtarefa:", err);
+  }
+};
+
+
+
 
 
 
@@ -388,7 +465,7 @@ async function confirmDeleteGoal() {
     console.error('Erro ao excluir meta:', err)
   } finally {
     confirmDialogGoal.value.close()
-    deletingId.value = null  
+    deletingId.value = null
     await store.fetchGoals()
   }
 }
@@ -401,7 +478,7 @@ async function confirmDeleteTask() {
     console.error('Erro ao excluir tarefa:', err)
   } finally {
     confirmDialogTask.value.close()
-    deletingId.value = null  
+    deletingId.value = null
     await store.fetchTasks()
   }
 }
@@ -604,3 +681,17 @@ function formatReminderTime(dt) {
 }
 
 </script>
+
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-5px);
+}
+</style>

@@ -7,6 +7,7 @@ use App\Http\Controllers\ResetPasswordController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\GoalController;
 use App\Http\Controllers\ReminderController;
+use App\Http\Controllers\SubtaskController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -22,6 +23,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/tasks/{task}', [TaskController::class, 'update']);
     Route::put('/tasks/{task}/status', [TaskController::class, 'updateStatus']);
     Route::delete('/tasks/{task}', [TaskController::class, 'destroy']);
+
+    Route::get('/subtasks', [SubtaskController::class, 'index']);
+    Route::post('/subtasks', [SubtaskController::class, 'store']);
+    Route::put('/subtasks/{subtask}', [SubtaskController::class, 'update']);
+    Route::delete('/subtasks/{subtask}', [SubtaskController::class, 'destroy']);
 
     Route::get('/goals', [GoalController::class, 'index']);
     Route::post('/goals', [GoalController::class, 'store']);
