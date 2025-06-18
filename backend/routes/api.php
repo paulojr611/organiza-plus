@@ -17,11 +17,12 @@ Route::post('/reset-password', [ResetPasswordController::class, 'reset']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 
-    // Tarefas CRUD
+   // Tarefas CRUD
     Route::get('/tasks', [TaskController::class, 'index']);
     Route::post('/tasks', [TaskController::class, 'store']);
     Route::put('/tasks/{task}', [TaskController::class, 'update']);
     Route::put('/tasks/{task}/status', [TaskController::class, 'updateStatus']);
+    Route::put('/tasks/{task}/notes', [TaskController::class, 'updateNotes']);  
     Route::delete('/tasks/{task}', [TaskController::class, 'destroy']);
 
     Route::get('/subtasks', [SubtaskController::class, 'index']);

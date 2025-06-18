@@ -17,6 +17,7 @@ return new class extends Migration {
             $table->date('due_date')->nullable();
             $table->string('status')->default('Não iniciada');
             $table->boolean('completed')->default(false);
+            $table->text('notes')->nullable();
             $table->timestamps();
         });
 

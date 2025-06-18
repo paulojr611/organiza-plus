@@ -182,7 +182,6 @@ const submitReminder = async () => {
   }
 }
 
-// Referência ao dialog nativo e lógica de confirmação
 const confirmDialog = ref(null)
 const deletingId = ref(null)
 
