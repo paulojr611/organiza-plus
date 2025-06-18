@@ -74,65 +74,90 @@
         <p v-if="!filteredGoals.length" class="text-gray-500 text-sm">Sem metas definidas.</p>
       </div>
 
-      <!--TAREFAS-->
+      <!-- TAREFAS -->
       <div class="bg-white p-4 rounded-2xl shadow col-span-2
-         max-h-[calc(100vh-3.5rem-4rem)] overflow-y-auto">
+         h-[calc(101vh-3.5rem-4rem-2rem)] overflow-y-auto">
         <h2 class="font-semibold mb-3">
           Tarefas de {{ selectedDay.toLocaleDateString('pt-BR') }}
         </h2>
 
+        <!-- Progresso -->
         <div class="mb-4">
           <div class="flex justify-between text-sm mb-1">
             <span>Progresso</span>
           </div>
           <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
             <div class="h-4 transition-all duration-300" :class="progressBarColor"
-              :style="{ width: progressPercent + '%' }">
-            </div>
+              :style="{ width: progressPercent + '%' }"></div>
           </div>
         </div>
 
-        <nav class="flex space-x-6 border-b border-gray-200 mb-5" aria-label="Filtro de status">
-          <button v-for="option in statusOptions" :key="option" @click="statusFilter = option" type="button" :class="[
-            'pb-2 font-medium text-sm transition-colors',
-            statusFilter === option
-              ? 'border-b-2 border-blue-600 text-blue-600'
-              : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-          ]">
-            {{ option }}
-          </button>
+        <!-- Filtro de status e pesquisa -->
+        <nav class="flex justify-between items-start border-b border-gray-200 mb-5">
+          <!-- Filtros -->
+          <div class="flex space-x-6 pt-1">
+            <button v-for="option in statusOptions" :key="option" @click="statusFilter = option" type="button" :class="[
+              'pb-2 font-medium text-sm transition-colors',
+              statusFilter === option
+                ? 'border-b-2 border-blue-600 text-blue-600'
+                : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            ]">
+              {{ option }}
+            </button>
+          </div>
+          <div class="mt-0">
+            <input type="search" v-model="searchTerm" placeholder=" Pesquisar tarefa..."
+              class="border border-gray-300 rounded-full px-5 py-1 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 transition w-72 -translate-y-1" />
+          </div>
+
         </nav>
 
         <!-- Lista de tarefas -->
         <ul class="space-y-4">
           <li v-for="task in filteredTasks" :key="task.id"
             class="p-4 bg-gray-100 rounded-2xl shadow flex flex-col space-y-2">
-
             <!-- Cabeçalho -->
             <div class="flex justify-between items-start">
               <h3 class="font-semibold text-lg">{{ task.title }}</h3>
               <div class="flex space-x-2 items-center">
-                <!-- Botão expandir/retrair -->
+
+                <!-- Botões -->
                 <button v-if="task.subtasks && task.subtasks.length > 0" @click="toggleExpanded(task.id)"
-                  class="text-blue-600 hover:text-blue-800" aria-label="Expandir subtarefas">
-                  <span v-if="expandedTasks.includes(task.id)">🔽</span>
-                  <span v-else>▶️</span>
+                  class="text-blue-600 hover:text-blue-800" aria-label="Expandir subtarefas" title="Expandir subtarefas">
+                  <span v-if="expandedTasks.includes(task.id)"><ArrowDownCircleIcon class="w-6 h-6"/></span>
+                  <span v-else><ArrowRightCircleIcon class = "w-6 h-6"/></span>
+                </button>
+                <button @click="openDateModal(task)" class="p-1 rounded hover:bg-gray-200" aria-label="Alterar data" title="Alterar data">
+                  <CalendarDaysIcon class="w-5 h-5" />
+                </button>
+                
+                <button @click="openNotesModal(task)" :class="[ 
+                  'p-1 rounded', 
+                  task.notes
+                    ? 'hover:bg-blue-200'
+                    : 'hover:bg-gray-200'
+                ]" title="Anotações" aria-label="Anotações" >
+                  <PencilSquareIcon :class="[
+                    'w-5 h-5 transition-colors duration-200',
+                    task.notes ? 'text-blue-600' : 'text-black'
+                  ]" />
                 </button>
 
-                <button @click="editTask(task)" class="text-yellow-600 hover:text-yellow-800"
+                <button @click="editTask(task)" class="p-1 rounded hover:bg-gray-200" title="Editar tarefa"
                   aria-label="Editar tarefa">
-                  ✏️
+                  <PencilIcon class="w-5 h-5"/>
                 </button>
-                <button @click="openConfirmTask(task.id)" class="text-red-600 hover:text-red-800"
+                <button @click="openConfirmTask(task.id)" class="text-red-600 hover:text-red-800" title="Excluir tarefa"
                   aria-label="Excluir tarefa">
-                  🗑️
+                  <TrashIcon class="w-5 h-5"/>
                 </button>
               </div>
             </div>
 
             <!-- Status -->
-            <div
-              :class="cardClassByStatus(task.status) + ' flex items-center space-x-2 flex-wrap p-3 rounded-xl transition-all duration-300'">
+            <div :class="cardClassByStatus(task.status) +
+              ' flex items-center space-x-2 flex-wrap p-3 rounded-xl transition-all duration-300'
+              ">
               <span class="text-sm text-gray-600">Status:</span>
               <button @click="updateStatus(task, 'Não iniciada')"
                 class="text-gray-600 bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-full text-sm">
@@ -168,18 +193,65 @@
                       {{ sub.title }}
                     </span>
                   </label>
-
                 </li>
               </ul>
             </transition>
-
           </li>
 
           <!-- Sem tarefas -->
-          <li v-if="!filteredTasks.length" class="text-gray-500">Nenhuma tarefa.</li>
+          <li v-if="!filteredTasks.length" class="text-gray-500">
+            Nenhuma tarefa.
+          </li>
         </ul>
       </div>
 
+      <!-- Modal de alterar data -->
+      <div v-if="editingTask" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-6 w-80">
+          <h2 class="text-lg font-bold mb-4 break-words">
+            Alterar data de "{{ editingTask.title }}"
+          </h2>
+
+          <!-- VCalendar Date Picker -->
+          <vc-date-picker v-model="editingTask.date" :min-date="today" is-inline :popover="{ visibility: 'click' }"
+            class="w-full mb-4" />
+
+          <div class="flex justify-end space-x-2">
+            <button @click="closeDateModal" class="px-4 py-2 rounded border">
+              Cancelar
+            </button>
+            <button @click="saveTaskDate" class="px-4 py-2 rounded bg-indigo-600 text-white">
+              Salvar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Anotações -->
+    <div v-if="showNotesModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-2xl p-6 w-full max-w-3xl mx-4" style="max-height: 85vh; overflow-y: auto;">
+        <h2 class="text-lg font-bold mb-4">
+          Anotações para "{{ selectedTask.title }}"
+        </h2>
+
+        <textarea v-model="notesText"
+          class="w-full border rounded-xl p-2 h-60 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Escreva sua anotação aqui..." maxlength="500"></textarea>
+
+        <div class="text-right text-xs text-gray-400 mt-1">
+          {{ notesText.length }}/500 caracteres
+        </div>
+
+        <div class="flex justify-end gap-2 mt-4">
+          <button @click="closeNotesModal" class="px-4 py-2 rounded-xl bg-gray-300 hover:bg-gray-400">
+            Cancelar
+          </button>
+          <button @click="saveNotes" class="px-4 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-white">
+            Salvar
+          </button>
+        </div>
+      </div>
     </div>
 
 
@@ -255,7 +327,7 @@
 <script setup>
 import { ref, computed, onMounted, reactive, watch } from 'vue'
 import { useStore } from '@/stores'
-import { PaperClipIcon, CheckCircleIcon, BellIcon } from '@heroicons/vue/24/outline'
+import { PaperClipIcon, CheckCircleIcon, BellIcon, CalendarDaysIcon, PencilSquareIcon, PencilIcon, TrashIcon, ArrowDownCircleIcon, ArrowRightCircleIcon } from '@heroicons/vue/24/outline'
 import { sidebar } from '../stores/menuSidebar'
 import { useToast } from 'vue-toastification'
 
@@ -266,6 +338,7 @@ const user = computed(() => store.user)
 const tasks = computed(() => store.tasks)
 const goals = computed(() => store.goals)
 const reminders = computed(() => store.reminders)
+
 
 
 
@@ -383,13 +456,22 @@ const todayTasks = computed(() => {
   })
 })
 
+
+const searchTerm = ref('')
+
 const filteredTasks = computed(() => {
-  if (statusFilter.value === 'Todos') {
-    return todayTasks.value
-  } else {
-    return todayTasks.value.filter(task => task.status === statusFilter.value)
+  let filtered = statusFilter.value === 'Todos'
+    ? todayTasks.value
+    : todayTasks.value.filter(task => task.status === statusFilter.value);
+
+  if (searchTerm.value.trim() !== '') {
+    const term = searchTerm.value.toLowerCase();
+    filtered = filtered.filter(task => task.title.toLowerCase().includes(term));
   }
-})
+
+  return filtered;
+});
+
 
 const expandedTasks = ref([])
 
@@ -408,7 +490,7 @@ const toggleSubtask = async (sub, task) => {
     await store.updateSubtaskStatus(sub.id, newStatus);
     sub.status = newStatus;
 
-    // Se a task estiver "Não iniciada", muda pra "Em andamento"
+    // Se a task estiver "Não iniciada", muda pra "Em andamento" ---- não tirar essa parte, já excluiu 3 vezes achando que era outra coisa
     if (task.status === "Não iniciada") {
       await store.updateTaskStatus(task.id, "Em andamento");
     }
@@ -417,8 +499,37 @@ const toggleSubtask = async (sub, task) => {
   }
 };
 
+// Edição da data da task
+const editingTask = ref(null)
+
+function openDateModal(task) {
+  editingTask.value = { ...task }
+}
+function closeDateModal() {
+  editingTask.value = null
+}
+
+async function saveTaskDate() {
+  try {
+    await store.updateDate(editingTask.value.id, editingTask.value.date)
+    const idx = store.tasks.findIndex(t => t.id === editingTask.value.id)
+    if (idx !== -1) store.tasks[idx].date = editingTask.value.date
 
 
+    const isoDay = selectedDay.value.toISOString().slice(0, 10)
+    await store.fetchTasksByDate(isoDay)
+
+    toast.success('Data atualizada e lista refeita!')
+    closeDateModal()
+  } catch (err) {
+    console.error(err)
+    toast.error('Erro ao atualizar data')
+  }
+}
+
+
+const today = new Date()
+today.setHours(0, 0, 0, 0)
 
 
 
@@ -536,8 +647,6 @@ async function saveEdit() {
   }
 }
 
-
-
 const cardClassByStatus = status => {
   switch (status) {
     case 'Não iniciada':
@@ -550,6 +659,47 @@ const cardClassByStatus = status => {
       return 'bg-gray-100 shadow'
   }
 }
+
+
+
+const showDateModal = ref(false)
+const showConfirmModal = ref(false)
+const showNotesModal = ref(false)
+
+const selectedTask = ref(null)
+const notesText = ref('')
+
+function openNotesModal(task) {
+  showDateModal.value = false
+  showConfirmModal.value = false
+  selectedTask.value = task
+  notesText.value = task.notes || ''
+  showNotesModal.value = true
+}
+function closeNotesModal() {
+  showNotesModal.value = false
+  selectedTask.value = null
+  notesText.value = ''
+}
+
+async function saveNotes() {
+  if (!selectedTask.value) return
+
+  try {
+    await store.updateTaskNotes(selectedTask.value.id, notesText.value)
+
+    selectedTask.value.notes = notesText.value
+
+    closeNotesModal()
+  }
+  catch (err) {
+    console.error('Erro ao salvar anotação:', err)
+    alert('Não foi possível salvar sua anotação.')
+  }
+}
+
+
+
 
 
 

@@ -14,7 +14,7 @@ class TaskController extends Controller
         $user = $request->user();
 
         $tasks = $user->tasks()
-            ->with('subtasks')        
+            ->with('subtasks')
             ->orderBy('due_date')
             ->get();
 
@@ -117,6 +117,22 @@ class TaskController extends Controller
         return response()->json(['message' => 'Tarefa deletada']);
     }
 
+    public function updateNotes(Request $request, Task $task)
+    {
+        $data = $request->validate([
+            'notes' => 'nullable|string|max:2000',
+        ]);
+
+        $task->notes = $data['notes'] ?? null;
+        $task->save();
+
+        return response()->json([
+            'message' => 'Notas atualizadas com sucesso!',
+            'task' => $task,
+        ]);
+    }
+
+    /*
     public function completeToday(Task $task)
     {
         $user = auth()->user();
@@ -132,4 +148,5 @@ class TaskController extends Controller
 
         return response()->json(['message' => 'Tarefa marcada como concluída para hoje.']);
     }
+        */
 }

@@ -4,13 +4,8 @@
     <form @submit.prevent="submitTask">
       <div class="mb-4">
         <label class="block mb-1 font-semibold">Título</label>
-        <input
-          v-model="form.title"
-          class="w-full border p-2 rounded-lg"
-          :class="{ 'border-red-500': errors.title }"
-          @input="errors.title = ''"
-          required
-        />
+        <input v-model="form.title" class="w-full border p-2 rounded-lg" :class="{ 'border-red-500': errors.title }"
+          @input="errors.title = ''" required />
         <p v-if="errors.title" class="text-red-500 text-sm mt-1">
           {{ errors.title }}
         </p>
@@ -18,52 +13,48 @@
 
       <div class="mb-4">
         <label class="block mb-1 font-semibold">Selecione as datas</label>
-        <vc-calendar
-          class="w-full"
-          :attributes="attributes"
-          :disabled-dates="disabledDatesArray"
-          @dayclick="onDayClick"
-        />
+        <vc-calendar class="w-full" :attributes="attributes" :disabled-dates="disabledDatesArray"
+          @dayclick="onDayClick" />
         <p v-if="errors.due_dates" class="text-red-500 text-sm mt-1">
           {{ errors.due_dates }}
         </p>
       </div>
 
       <div class="mb-4">
-        <label class="block mb-1 font-semibold">Subtarefas</label>
-        <div
-          v-for="(sub, idx) in form.subtasks"
-          :key="idx"
-          class="flex items-center mb-2"
-        >
-          <input
-            v-model="sub.title"
-            type="text"
-            placeholder="Título da subtarefa"
-            class="w-full border p-2 rounded-lg"
-          />
-          <button
-            type="button"
-            @click="removeSubtask(idx)"
-            class="ml-2 text-red-500"
-          >
-            ❌
-          </button>
+        <label class="block mb-2 font-semibold">Subtarefas</label>
+
+        <!-- Container rolável: -->
+        <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
+          <div v-for="(sub, idx) in form.subtasks" :key="idx"
+            class="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg p-2">
+            <input v-model="sub.title" type="text" placeholder="Nova subtarefa"
+              class="flex-1 bg-transparent focus:outline-none px-2 py-1 text-gray-700" />
+            <button type="button" @click="removeSubtask(idx)" class="ml-2 hover:bg-red-100 p-1 rounded-full transition"
+              aria-label="Remover subtarefa">
+              <!-- ícone X -->
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
         </div>
-        <button
-          type="button"
-          @click="addSubtask"
-          class="text-blue-500 hover:underline"
-        >
-          + Adicionar subtarefa
+
+        <button type="button" @click="addSubtask"
+          class="mt-2 inline-flex items-center text-blue-600 hover:underline focus:outline-none">
+          <!-- ícone + -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Adicionar subtarefa
         </button>
       </div>
 
-      <button
-        type="submit"
-        :disabled="loading"
-        class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50 flex items-center gap-2"
-      >
+
+
+      <button type="submit" :disabled="loading"
+        class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50 flex items-center gap-2">
         {{ loading ? 'Salvando...' : 'Salvar Tarefa' }}
       </button>
     </form>

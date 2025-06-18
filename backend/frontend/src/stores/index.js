@@ -95,7 +95,37 @@ export const useStore = defineStore("main", {
             await axios.delete(`/tasks/${taskId}`);
             this.fetchTasks();
         },
+        async fetchTasksByDate(date) {
+            const { data } = await axios.get("/tasks", {
+                params: { date },
+            });
+            this.tasks = data;
+        },
+        async updateDate(id, newDate) {
+            await axios.put(`/tasks/${id}`, {
+                due_date: newDate,
+            });
 
+            const idx = this.tasks.findIndex((t) => t.id === id);
+            if (idx !== -1) {
+                this.tasks[idx] = {
+                    ...this.tasks[idx],
+                    due_date: newDate,
+                };
+            }
+        },
+        async updateTaskNotes(taskId, notes) {
+            const resp = await axios.put(`/tasks/${taskId}/notes`, {
+                notes,
+            });
+            const idx = this.tasks.findIndex((t) => t.id === taskId);
+            if (idx !== -1) {
+                this.tasks[idx].notes = resp.data.task.notes;
+            }
+            return resp.data.task;
+        },
+
+        
         async logout() {
             try {
                 await axios.post("/logout");
