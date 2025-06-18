@@ -10,10 +10,11 @@
       </template>
 
       <main v-else class="flex-1 bg-gray-100 text-black overflow-auto p-4">
-        <RouterView />
+        <RouterView />   
       </main>
     </div>
   </div>
+  
 </template>
 
 <script setup>

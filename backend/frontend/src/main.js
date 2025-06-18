@@ -30,3 +30,4 @@ app.use(Toast, {
     position: POSITION.TOP_RIGHT,
     timeout: 3000,
 });
+
