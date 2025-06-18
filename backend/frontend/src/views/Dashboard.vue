@@ -28,51 +28,86 @@
         </ul>
       </div>
 
-      <!--METAS-->
+
+      <!-- METAS -->
       <div class="bg-white p-4 rounded-2xl shadow">
-        <h2 class="font-semibold mb-3">Progresso das Metas</h2>
+        <h2 class="font-semibold text-lg mb-4">Progresso das Metas</h2>
 
-        <div v-for="goal in filteredGoals" :key="goal.id" class="mb-5 p-4 rounded-lg border border-gray-100 bg-gray-50">
-          <div class="flex justify-between items-start mb-2">
-            <div>
-              <span class="text-base md:text-lg font-semibold block">{{ goal.title }}</span>
-              <span class="text-xs text-gray-500 block">
-                {{ formatDate(goal.start_date) }} até {{ formatDate(goal.end_date) }}
-              </span>
+        <!-- Container rolável -->
+        <div class="max-h-[76vh] overflow-y-auto pr-2 space-y-5">
+          <div v-for="goal in filteredGoals" :key="goal.id" :class="[
+            'p-4 rounded-2xl border shadow-sm hover:shadow transition-shadow duration-200',
+            goalProgressPercent(goalInputs[goal.id], goal.target_value) >= 100
+              ? 'bg-green-50 border-green-200'
+              : 'bg-gray-50 border-gray-100'
+          ]">
+            <!-- Header -->
+            <div class="flex justify-between items-start mb-4">
+              <div>
+                <p :class="[
+                  'text-base md:text-lg font-semibold',
+                  goalProgressPercent(goalInputs[goal.id], goal.target_value) >= 100
+                    ? 'text-green-800'
+                    : 'text-gray-800'
+                ]">
+                  {{ goal.title }}
+                </p>
+                <p class="text-xs text-gray-500">
+                  {{ formatDate(goal.start_date) }} até {{ formatDate(goal.end_date) }}
+                </p>
+              </div>
+
+              <div class="flex flex-col items-end gap-2">
+                <div class="flex gap-2">
+                  <button @click="editGoal(goal)" class="p-1 rounded-full hover:bg-gray-200 transition"
+                    title="Editar meta">
+                    <PencilIcon :class="goalProgressPercent(goalInputs[goal.id], goal.target_value) >= 100
+                      ? 'text-green-800 hover:text-green-900'
+                      : 'text-gray-600 hover:text-gray-800'" class="w-5 h-5" />
+                  </button>
+                  <button @click="openConfirmGoal(goal.id)" class="p-1 rounded-full hover:bg-red-100 transition"
+                    title="Excluir meta">
+                    <TrashIcon class="w-5 h-5 text-red-600 hover:text-red-800" />
+                  </button>
+                </div>
+                <span class="mt-1 inline-block text-xs font-medium px-2 py-0.5 rounded-full" :class="goalProgressPercent(goalInputs[goal.id], goal.target_value) >= 100
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-blue-100 text-blue-800'">
+                  {{ goalProgressPercent(goalInputs[goal.id], goal.target_value) }}%
+                </span>
+              </div>
             </div>
 
-            <div class="flex gap-2 text-xl">
-              <button @click="editGoal(goal)" class="text-blue-500 hover:text-blue-700" title="Editar Meta">
-                ✏️
-              </button>
-              <button @click="openConfirmGoal(goal.id)" class="text-red-500 hover:text-red-700" title="Excluir Meta">
-                🗑️
-              </button>
-            </div>
-          </div>
-
-          <div class="flex flex-col md:flex-row justify-between items-center mb-3 space-y-2 md:space-y-0">
-            <div class="flex items-center space-x-2">
-              <label :for="'completed-' + goal.id" class="text-sm text-gray-600">
-                Concluído:
-              </label>
-              <input :id="'completed-' + goal.id" v-model.number="goalInputs[goal.id]" type="number" min="0"
-                :max="goal.target_value" @blur="saveGoalProgress(goal)" @keyup.enter="saveGoalProgress(goal)"
-                class="w-20 border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200" />
-              <span class="text-sm text-gray-500">
-                / {{ goal.target_value }}
-              </span>
+            <!-- Input de progresso -->
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+              <div class="flex items-center gap-2">
+                <label :for="'completed-' + goal.id" class="text-sm text-gray-600">
+                  Concluído:
+                </label>
+                <input :id="'completed-' + goal.id" v-model.number="goalInputs[goal.id]" type="number" min="0"
+                  :max="goal.target_value" @blur="saveGoalProgress(goal)" @keyup.enter="saveGoalProgress(goal)"
+                  class="w-20 border rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 transition"/>
+                <span class="text-sm text-gray-500">/ {{ goal.target_value }}</span>
+              </div>
             </div>
 
-          </div>
-          <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
-            <div class="h-4 transition-width duration-500 rounded-full"
-              :class="goalProgressColor(goalProgressPercent(goalInputs[goal.id], goal.target_value))"
-              :style="{ width: goalProgressPercent(goalInputs[goal.id], goal.target_value) + '%' }"></div>
+            <!-- Barra de progresso -->
+            <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+              <div class="h-4 transition-all duration-500 rounded-full"
+                :class="goalProgressColor(goalProgressPercent(goalInputs[goal.id], goal.target_value))"
+                :style="{ width: goalProgressPercent(goalInputs[goal.id], goal.target_value) + '%' }"></div>
+            </div>
           </div>
         </div>
-        <p v-if="!filteredGoals.length" class="text-gray-500 text-sm">Sem metas definidas.</p>
+
+        <p v-if="!filteredGoals.length" class="text-center text-gray-500 text-sm mt-6">
+          Sem metas definidas.
+        </p>
       </div>
+
+
+
+
 
       <!-- TAREFAS -->
       <div class="bg-white p-4 rounded-2xl shadow col-span-2
@@ -123,20 +158,26 @@
 
                 <!-- Botões -->
                 <button v-if="task.subtasks && task.subtasks.length > 0" @click="toggleExpanded(task.id)"
-                  class="text-blue-600 hover:text-blue-800" aria-label="Expandir subtarefas" title="Expandir subtarefas">
-                  <span v-if="expandedTasks.includes(task.id)"><ArrowDownCircleIcon class="w-6 h-6"/></span>
-                  <span v-else><ArrowRightCircleIcon class = "w-6 h-6"/></span>
+                  class="text-blue-600 hover:text-blue-800" aria-label="Expandir subtarefas"
+                  title="Expandir subtarefas">
+                  <span v-if="expandedTasks.includes(task.id)">
+                    <ArrowDownCircleIcon class="w-6 h-6" />
+                  </span>
+                  <span v-else>
+                    <ArrowRightCircleIcon class="w-6 h-6" />
+                  </span>
                 </button>
-                <button @click="openDateModal(task)" class="p-1 rounded hover:bg-gray-200" aria-label="Alterar data" title="Alterar data">
+                <button @click="openDateModal(task)" class="p-1 rounded hover:bg-gray-200" aria-label="Alterar data"
+                  title="Alterar data">
                   <CalendarDaysIcon class="w-5 h-5" />
                 </button>
-                
-                <button @click="openNotesModal(task)" :class="[ 
-                  'p-1 rounded', 
+
+                <button @click="openNotesModal(task)" :class="[
+                  'p-1 rounded',
                   task.notes
                     ? 'hover:bg-blue-200'
                     : 'hover:bg-gray-200'
-                ]" title="Anotações" aria-label="Anotações" >
+                ]" title="Anotações" aria-label="Anotações">
                   <PencilSquareIcon :class="[
                     'w-5 h-5 transition-colors duration-200',
                     task.notes ? 'text-blue-600' : 'text-black'
@@ -145,11 +186,11 @@
 
                 <button @click="editTask(task)" class="p-1 rounded hover:bg-gray-200" title="Editar tarefa"
                   aria-label="Editar tarefa">
-                  <PencilIcon class="w-5 h-5"/>
+                  <PencilIcon class="w-5 h-5" />
                 </button>
                 <button @click="openConfirmTask(task.id)" class="text-red-600 hover:text-red-800" title="Excluir tarefa"
                   aria-label="Excluir tarefa">
-                  <TrashIcon class="w-5 h-5"/>
+                  <TrashIcon class="w-5 h-5" />
                 </button>
               </div>
             </div>
@@ -322,6 +363,8 @@
       </div>
     </dialog>
   </div>
+
+
 </template>
 
 <script setup>
@@ -706,10 +749,13 @@ async function saveNotes() {
 
 const goalInputs = reactive({})
 
-function goalProgressPercent(completedValue, targetValue) {
-  if (!targetValue || targetValue === 0) return 0
-  return Math.min(100, Math.round((completedValue / targetValue) * 100))
-}
+const goalProgressPercent = (completed, target) => {
+  if (!target) return 0;
+  // calcula percentual real
+  const rawPercent = (completed / target) * 100;
+  // arredonda sempre pra baixo e garante entre 0 e 100
+  return Math.min(Math.max(Math.floor(rawPercent), 0), 100);
+};
 
 function goalProgressColor(percent) {
   if (percent === 0) return 'bg-gray-400'
@@ -733,7 +779,6 @@ async function saveGoalProgress(goal) {
     goalInputs[goal.id] = newCompleted
   } catch (error) {
     console.error('Erro ao atualizar progresso da meta:', error)
-    alert('Houve um erro ao salvar o progresso. Tente novamente.')
     goalInputs[goal.id] = goal.completed
   }
 }
@@ -780,14 +825,18 @@ const filteredGoals = computed(() => {
     const endDateString = goal.end_date.split('T')[0];
     return selDateString >= startDateString && selDateString <= endDateString;
   });
-});
+})
+
+
+
+
+
+
+
+
+
 
 import { scheduleNotification } from "@/utils/notification";
-
-
-
-
-
 
 onMounted(async () => {
   if ("Notification" in window && Notification.permission !== "granted") {
