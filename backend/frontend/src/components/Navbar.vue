@@ -1,8 +1,10 @@
 <template>
-   <header class="flex justify-between items-center p-3 h-14 shadow bg-purple-500 fixed top-0 left-0 w-full z-10">
-     <div class="text-center text-white font-bold">
-       Organiza+
-     </div>
-   </header>
- </template>
- 
+  <header class="fixed top-0 left-0 w-full h-14 bg-indigo-600 shadow z-[998] px-4 flex items-center justify-between">
+    <div class="absolute left-1/2 transform -translate-x-1/2 text-white font-bold text-lg tracking-wide">
+      Organiza<span class="text-yellow-300">+</span>
+    </div>
+    <!-- Avatar -->
+    <div class="flex items-center gap-2">
+    </div>
+  </header>
+</template>

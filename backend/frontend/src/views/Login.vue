@@ -5,32 +5,22 @@
       <form @submit.prevent="handleSubmit">
         <div class="mb-4">
           <label class="block text-gray-700 mb-2" for="email">E-mail</label>
-          <input
-            id="email"
-            v-model="form.email"
-            type="email"
-            required
-            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
+          <input id="email" v-model="form.email" type="email" required
+            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
         </div>
         <div class="mb-6">
           <label class="block text-gray-700 mb-2" for="password">Senha</label>
-          <input
-            id="password"
-            v-model="form.password"
-            type="password"
-            required
-            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
+          <input id="password" v-model="form.password" type="password" required
+            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
         </div>
-        <button
-          type="submit"
-          :disabled="loading"
-          class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 rounded-lg transition-colors disabled:opacity-50"
-        >
+        <button type="submit" :disabled="loading"
+          class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 rounded-lg transition-colors disabled:opacity-50">
           {{ loading ? 'Entrando...' : 'Entrar' }}
         </button>
       </form>
+      <p class="text-center text-sm text-gray-600 mt-4">
+        <a href="/ResetSenha" class="text-blue-500 hover:underline">Esqueceu sua senha?</a>
+      </p>
       <p class="text-center text-sm text-gray-600 mt-4">
         Não tem conta?
         <a href="/cadastro" class="text-blue-500 hover:underline">Cadastre-se</a>
@@ -52,10 +42,15 @@ const loading = ref(false)
 const handleSubmit = async () => {
   loading.value = true
   try {
-    const response = await axios.post('/api/login', form)
-    localStorage.setItem('user', JSON.stringify(response.data.user ?? { email: form.email }))
-    console.log('Login bem-sucedido:', response.data)
-    window.location.href = '/count' // Redireciona após login
+    const { data } = await axios.post('/api/login', form)
+
+    localStorage.setItem('api_token', data.token)
+    localStorage.setItem('user', JSON.stringify(data.user))
+    
+    axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`
+
+    console.log('Login bem-sucedido:', data)
+    window.location.href = '/dashboard'
   } catch (error) {
     console.error('Erro ao fazer login:', error.response?.data)
     alert(error.response?.data.message || 'Erro no login')
@@ -64,7 +59,3 @@ const handleSubmit = async () => {
   }
 }
 </script>
-
-<style scoped>
-/* Ajustes adicionais de estilo, se necessário */
-</style>

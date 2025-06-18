@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Models;
+use App\Models\Task;
+use App\Models\Reminder;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,6 +19,10 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
+    public function tasks()
+{
+    return $this->hasMany(Task::class);
+}
     protected $fillable = [
         'name',
         'email',
@@ -41,4 +47,13 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+    public function goals()
+{
+    return $this->hasMany(Goal::class);
+}
+public function reminders()
+{
+    return $this->hasMany(Reminder::class);
+}
+
 }
