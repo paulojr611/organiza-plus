@@ -59,7 +59,7 @@ const logout = async () => {
           @click="allowAccess"
           class="flex items-center gap-2 p-2 rounded hover:bg-black/20 transition"
         >
-          <component :is="item.icon" class="w-5 text-gray-200" />
+          <component :is="item.icon" class="w-6 text-gray-200" />
           <span class="text-sm">{{ item.label }}</span>
         </router-link>
       </div>

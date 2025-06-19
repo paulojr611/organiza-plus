@@ -37,6 +37,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/reminders', [ReminderController::class, 'index']);
     Route::post('/reminders', [ReminderController::class, 'store']);
+    Route::post('/reminders/{reminder}/notify', [ReminderController::class, 'notify']);
     Route::put('/reminders/{reminder}', [ReminderController::class, 'update']);
     Route::patch('/reminders/{reminder}', [ReminderController::class, 'update']);
     Route::delete('/reminders/{reminder}', [ReminderController::class, 'destroy']);

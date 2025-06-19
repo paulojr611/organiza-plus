@@ -15,42 +15,46 @@ const routes = [
         path: "/",
         name: "Convite",
         component: convite,
+        meta: { layout: "public" },
     },
     {
         path: "/login",
         name: "Login",
         component: login,
+        meta: { layout: "public" },
     },
     {
-        path: "/ResetSenha",
+        path: "/reset-senha",
         name: "ResetSenha",
         component: resetsenha,
+        meta: { layout: "public" },
     },
     {
-        path: "/Cadastro",
+        path: "/cadastro",
         name: "Cadastro",
         component: cadastro,
+        meta: { layout: "public" },
     },
     {
-        path: "/Dashboard",
+        path: "/dashboard",
         name: "Dashboard",
         component: dashboard,
         meta: { requiresAuth: true },
     },
     {
-        path: "/NovaTarefa",
+        path: "/novatarefa",
         name: "NovaTarefa",
         component: novatarefa,
         meta: { requiresAuth: true },
     },
     {
-        path: "/NovaMeta",
+        path: "/novameta",
         name: "NovaMeta",
         component: novameta,
         meta: { requiresAuth: true },
     },
     {
-        path: "/NovoLembrete",
+        path: "/novolembrete",
         name: "NovaLembrete",
         component: novolembrete,
         meta: { requiresAuth: true },
@@ -63,35 +67,31 @@ const routes = [
     },
 ];
 
-let hasClicked = false;
-
 const router = createRouter({
     history: createWebHistory(),
     routes,
 });
 
-router.beforeEach((to, from) => {
+router.beforeEach((to) => {
     const store = useStore();
+
+    const token = localStorage.getItem("api_token");
+    const userJson = localStorage.getItem("user");
+    if (token && !store.user) {
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        store.user = JSON.parse(userJson);
+    }
 
     if (to.meta.requiresAuth && !store.user) {
         return { name: "Login" };
     }
 
-    if ((to.name === "/" || to.name === "/Cadastro") && store.user) {
+    const publicPages = ["Convite", "Login", "Cadastro", "ResetSenha"];
+    if (publicPages.includes(to.name) && store.user) {
         return { name: "Dashboard" };
     }
+
+    return true;
 });
-
-/*router.beforeEach((to, from, next) => {
-  if (to.meta.requiresClick && !hasClicked) {
-    console.warn('Acesso bloqueado: requer clique antes de acessar.');
-    return next(false); 
-  }
-  next();
-});*/
-
-export const setClickAccess = () => {
-    hasClicked = true;
-};
 
 export default router;

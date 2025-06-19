@@ -5,34 +5,18 @@
     <form @submit.prevent="submitGoal" class="space-y-4">
       <div>
         <label class="block mb-1 font-medium">Título da Meta</label>
-        <input
-          v-model="goal.title"
-          type="text"
-          class="w-full px-4 py-2 rounded border border-gray-300 focus:ring focus:ring-blue-200"
-          required
-        />
+        <input v-model="goal.title" type="text" maxlength="25"
+          class="w-full px-4 py-2 rounded border border-gray-300 focus:ring focus:ring-blue-200" required />
       </div>
 
       <div>
         <label class="block mb-1 font-medium">Valor Alvo</label>
-        <input
-          v-model="goal.target_value"
-          type="number"
-          min="1"
-          class="w-full px-4 py-2 rounded border border-gray-300 focus:ring focus:ring-blue-200"
-          required
-        />
+        <input v-model="goal.target_value" type="number" min="1" max="1000000" 
+          class="w-full px-4 py-2 rounded border border-gray-300 focus:ring  focus:ring-blue-200" required />
       </div>
 
-      <vc-date-picker
-        v-model="goalDateRange"
-        is-range
-        color="blue"
-        :columns="1"
-        class="w-full"
-        :popover="{ visibility: 'click', placement: 'bottom' }"
-        :disabled-dates="disabledDatesArray"
-      />
+      <vc-date-picker v-model="goalDateRange" is-range color="blue" :columns="1" class="w-full"
+        :popover="{ visibility: 'click', placement: 'bottom' }" :disabled-dates="disabledDatesArray" />
 
       <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded shadow">
         Salvar Meta
@@ -47,9 +31,9 @@ import { useStore } from '@/stores'
 import { useRouter } from 'vue-router'
 import { sidebar } from '../stores/menuSidebar'
 import { PaperClipIcon, ClipboardIcon, BellIcon } from '@heroicons/vue/24/outline'
-import { useToast } from 'vue-toastification' 
+import { useToast } from 'vue-toastification'
 
-const toast = useToast() 
+const toast = useToast()
 
 const menuStore = sidebar()
 const store = useStore()
@@ -84,7 +68,7 @@ const goalDateRange = ref({ start: null, end: null })
 
 async function submitGoal() {
   if (!goalDateRange.value.start || !goalDateRange.value.end) {
-    toast.warning('Selecione o intervalo de datas.') 
+    toast.warning('Selecione o intervalo de datas.')
     return
   }
 
@@ -93,11 +77,11 @@ async function submitGoal() {
 
   try {
     await store.createGoal(goal.value)
-    toast.success('Meta criada com sucesso!') 
+    toast.success('Meta criada com sucesso!')
     router.push('/dashboard')
   } catch (error) {
     console.error('Erro ao criar meta:', error)
-    toast.error('Erro ao criar meta.') 
+    toast.error('Erro ao criar meta.')
   }
 }
 

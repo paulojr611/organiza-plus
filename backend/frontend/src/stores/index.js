@@ -46,11 +46,10 @@ export const useStore = defineStore("main", {
                     headers: { Authorization: `Bearer ${token}` },
                 });
 
-                // limpa form e selecionados
                 form.title = "";
                 form.due_dates = [];
                 selectedDays.value = [];
-                form.subtasks = []; // <— limpa também as subtarefas
+                form.subtasks = []; 
                 router.push({ name: "Dashboard" });
             } catch (err) {
                 if (err.response?.status === 422 && err.response.data.errors) {
@@ -125,17 +124,25 @@ export const useStore = defineStore("main", {
             return resp.data.task;
         },
 
-        
         async logout() {
             try {
                 await axios.post("/logout");
+            } catch (error) {
+                console.error("Erro no request de logout:", error);
+            } finally {
                 this.user = null;
                 this.tasks = [];
-                localStorage.removeItem("token");
-                axios.defaults.headers.common["Authorization"] = null;
-            } catch (error) {
-                console.error("Erro ao fazer logout:", error);
-                throw error;
+                this.goals = [];
+                this.reminders = [];
+
+                localStorage.removeItem("api_token");
+                localStorage.removeItem("user");
+
+                delete axios.defaults.headers.common["Authorization"];
+
+                this.router
+                    ? this.router.push({ path: "/" })
+                    : (window.location.href = "/");
             }
         },
 
@@ -244,14 +251,9 @@ export const useStore = defineStore("main", {
         },
 
         async fetchReminders() {
-            const token = localStorage.getItem("api_token");
-            const { data } = await axios.get("/reminders", {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            const { data } = await axios.get("/reminders");
             this.reminders = data.map((r) => ({
                 ...r,
-                // antes: new Date(r.remind_at.replace(/Z$/, "")),
-                // agora:
                 remind_at: new Date(r.remind_at),
             }));
         },
