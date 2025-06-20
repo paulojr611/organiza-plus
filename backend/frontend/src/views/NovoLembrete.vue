@@ -10,8 +10,8 @@
         <form @submit.prevent="submitReminder" class="space-y-4">
           <div>
             <label class="block mb-1 font-semibold">Título</label>
-            <input v-model="form.title" class="w-full border p-2 rounded-lg" :class="{ 'border-red-500': errors.title }"
-              @input="errors.title = ''" required />
+            <input v-model="form.title" class="w-full border p-2 rounded-lg" maxlength="30"
+              :class="{ 'border-red-500': errors.title }" @input="errors.title = ''" required />
             <p v-if="errors.title" class="text-red-500 text-sm mt-1">
               {{ errors.title }}
             </p>
@@ -68,7 +68,7 @@
             </button>
           </div>
         </div>
-        <p v-else class="text-gray-500">Nenhum lembrete cadastrado.</p>
+        <p v-else class="text-gray-500">Nenhum lembrete agendado.</p>
       </section>
     </main>
 

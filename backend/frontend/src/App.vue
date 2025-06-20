@@ -38,4 +38,3 @@ const isAuthPage = computed(() => {
 })
 </script>
 
-<!-- removemos o <style scoped> daqui, já que o reset/global vai num CSS importado -->

@@ -59,9 +59,6 @@ class AuthController extends Controller
         ], 201);
     }
 
-    /**
-     * Faz logout: revoga todos os tokens do usuário atual.
-     */
     public function logout(Request $request)
     {
         // Revoga todos os tokens

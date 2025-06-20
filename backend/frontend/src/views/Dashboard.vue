@@ -86,7 +86,7 @@
                 </label>
                 <input :id="'completed-' + goal.id" v-model.number="goalInputs[goal.id]" type="number" min="0"
                   :max="goal.target_value" @blur="saveGoalProgress(goal)" @keyup.enter="saveGoalProgress(goal)"
-                  class="w-20 border rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 transition"/>
+                  class="w-20 border rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 transition" />
                 <span class="text-sm text-gray-500">/ {{ goal.target_value }}</span>
               </div>
             </div>
@@ -383,6 +383,50 @@ const goals = computed(() => store.goals)
 const reminders = computed(() => store.reminders)
 
 
+//carrega tudo
+async function loadData() {
+  try {
+    await store.fetchGoals()
+    initializeGoalInputs()
+
+    await store.fetchTasks()
+    await store.fetchReminders()
+    store.reminders = store.reminders.map(r => {
+      const dt = new Date(r.remind_at)
+      const corrected = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000)
+      const localIso = corrected.toISOString().replace(/Z$/, '')
+      return { ...r, remind_at: localIso }
+    })
+  } catch (err) {
+    console.error('Erro ao buscar dados iniciais:', err)
+  }
+}
+watch(
+  () => store.user,
+  (user) => {
+    if (user) loadData()
+  },
+  { immediate: true }
+)
+
+
+
+watch(goals, () => {
+  initializeGoalInputs()
+})
+
+function goToDate(day) {
+  selectedDay.value = day.date
+}
+
+const todayTasks = computed(() => {
+  return tasks.value.filter(task => {
+    if (!task.due_date) return false
+    const taskDateStr = task.due_date.split('T')[0]
+    const selectedDateStr = selectedDay.value.toISOString().split('T')[0]
+    return taskDateStr === selectedDateStr
+  })
+})
 
 
 const selectedDay = ref(
@@ -468,36 +512,6 @@ const calendarAttributes = computed(() => {
 })
 
 
-onMounted(async () => {
-  await store.fetchGoals()
-  initializeGoalInputs()
-
-  await store.fetchTasks()
-  await store.fetchReminders();
-  store.reminders = store.reminders.map(r => {
-    const dt = new Date(r.remind_at);
-    const corrected = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000);
-    const localIso = corrected.toISOString().replace(/Z$/, '');
-    return { ...r, remind_at: localIso };
-  });
-})
-
-watch(goals, () => {
-  initializeGoalInputs()
-})
-
-function goToDate(day) {
-  selectedDay.value = day.date
-}
-
-const todayTasks = computed(() => {
-  return tasks.value.filter(task => {
-    if (!task.due_date) return false
-    const taskDateStr = task.due_date.split('T')[0]
-    const selectedDateStr = selectedDay.value.toISOString().split('T')[0]
-    return taskDateStr === selectedDateStr
-  })
-})
 
 
 const searchTerm = ref('')
@@ -542,7 +556,6 @@ const toggleSubtask = async (sub, task) => {
   }
 };
 
-// Edição da data da task
 const editingTask = ref(null)
 
 function openDateModal(task) {

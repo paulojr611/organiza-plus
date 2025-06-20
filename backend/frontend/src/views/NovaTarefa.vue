@@ -4,8 +4,8 @@
     <form @submit.prevent="submitTask">
       <div class="mb-4">
         <label class="block mb-1 font-semibold">Título</label>
-        <input v-model="form.title" class="w-full border p-2 rounded-lg" :class="{ 'border-red-500': errors.title }"
-          @input="errors.title = ''" required />
+        <input v-model="form.title" class="w-full border p-2 rounded-lg" maxlength="50"
+          :class="{ 'border-red-500': errors.title }" @input="errors.title = ''" required />
         <p v-if="errors.title" class="text-red-500 text-sm mt-1">
           {{ errors.title }}
         </p>
@@ -27,7 +27,7 @@
         <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
           <div v-for="(sub, idx) in form.subtasks" :key="idx"
             class="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg p-2">
-            <input v-model="sub.title" type="text" placeholder="Nova subtarefa"
+            <input v-model="sub.title" type="text" placeholder="Nova subtarefa" maxlength="50"
               class="flex-1 bg-transparent focus:outline-none px-2 py-1 text-gray-700" />
             <button type="button" @click="removeSubtask(idx)" class="ml-2 hover:bg-red-100 p-1 rounded-full transition"
               aria-label="Remover subtarefa">
