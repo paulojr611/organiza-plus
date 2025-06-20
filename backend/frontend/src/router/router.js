@@ -1,65 +1,97 @@
-import { createRouter, createWebHistory } from 'vue-router';
-import count from '../views/Count.vue';
-import rpg from '../views/rpg.vue';
-import criarpersonagem from '../views/CriarPersonagem.vue';
-import status from '../views/Status.vue';
-import login from '../views/Login.vue';
-import cadastro from '../views/Cadastro.vue';
-
+import { createRouter, createWebHistory } from "vue-router";
+import login from "../views/Login.vue";
+import cadastro from "../views/Cadastro.vue";
+import resetsenha from "../views/ResetSenha.vue";
+import dashboard from "../views/Dashboard.vue";
+import novatarefa from "../views/NovaTarefa.vue";
+import naoencontrada from "../views/NaoEncontrada.vue";
+import novameta from "../views/NovaMeta.vue";
+import novolembrete from "../views/NovoLembrete.vue";
+import convite from "../views/Convite.vue";
+import { useStore } from "@/stores";
 
 const routes = [
-  {
-    path: '/',
-    name: 'Login',
-    component: login,
-  },
     {
-    path: '/Cadastro',
-    name: 'Cadastro',
-    component: cadastro,
-  },
-  {
-    path: '/criarpersonagem',
-    name: 'criarpersonagem',
-    component: criarpersonagem,
-  },
-  {
-    path: '/rpg',
-    name: 'rpg',
-    component: rpg,
-   // meta: { requiresClick: true },
-  },
-  {
-    path: '/status',
-    name: 'status',
-    component: status,
-   // meta: { requiresClick: true },
-  },
-  {
-    path: '/count',
-    name: 'count',
-    component: count,
-  },
-
+        path: "/",
+        name: "Convite",
+        component: convite,
+        meta: { layout: "public" },
+    },
+    {
+        path: "/login",
+        name: "Login",
+        component: login,
+        meta: { layout: "public" },
+    },
+    {
+        path: "/reset-senha",
+        name: "ResetSenha",
+        component: resetsenha,
+        meta: { layout: "public" },
+    },
+    {
+        path: "/cadastro",
+        name: "Cadastro",
+        component: cadastro,
+        meta: { layout: "public" },
+    },
+    {
+        path: "/dashboard",
+        name: "Dashboard",
+        component: dashboard,
+        meta: { requiresAuth: true },
+    },
+    {
+        path: "/novatarefa",
+        name: "NovaTarefa",
+        component: novatarefa,
+        meta: { requiresAuth: true },
+    },
+    {
+        path: "/novameta",
+        name: "NovaMeta",
+        component: novameta,
+        meta: { requiresAuth: true },
+    },
+    {
+        path: "/novolembrete",
+        name: "NovaLembrete",
+        component: novolembrete,
+        meta: { requiresAuth: true },
+    },
+    {
+        path: "/:pathMatch(.*)*",
+        name: "NaoEncontrada",
+        component: naoencontrada,
+        meta: { layout: "public" },
+    },
 ];
 
-let hasClicked = false;
-
 const router = createRouter({
-  history: createWebHistory(),
-  routes,
+    history: createWebHistory(),
+    routes,
 });
 
-router.beforeEach((to, from, next) => {
-  if (to.meta.requiresClick && !hasClicked) {
-    console.warn('Acesso bloqueado: requer clique antes de acessar.');
-    return next(false); 
-  }
-  next();
-});
+router.beforeEach((to) => {
+    const store = useStore();
 
-export const setClickAccess = () => {
-  hasClicked = true;
-};
+    const token = localStorage.getItem("api_token");
+    const userJson = localStorage.getItem("user");
+    if (token && !store.user) {
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        store.user = JSON.parse(userJson);
+    }
+
+    if (to.meta.requiresAuth && !store.user) {
+        return { name: "Login" };
+    }
+
+    const publicPages = ["Convite", "Login", "Cadastro", "ResetSenha"];
+    if (publicPages.includes(to.name) && store.user) {
+        return { name: "Dashboard" };
+    }
+
+    return true;
+});
 
 export default router;

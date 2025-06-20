@@ -1,19 +1,20 @@
 <template>
   <div class="flex flex-col h-screen">
-    <!-- Navbar -->
     <Navbar v-if="!isAuthPage" />
 
-    <!-- Sidebar e Conteúdo -->
-    <div class="flex flex-1" :style="isAuthPage ? '' : 'margin-top: 56px;'">
-      <!-- Sidebar -->
+    <div class="flex flex-1" :style="!isAuthPage ? 'margin-top: 56px;' : ''">
       <Sidebar v-if="!isAuthPage" />
 
-      <!-- Área Principal -->
-      <main class="flex-1 bg-gray-100 text-black overflow-auto p-4">
-        <RouterView />
+      <template v-if="isAuthPage">
+        <RouterView class="flex-1" />
+      </template>
+
+      <main v-else class="flex-1 bg-gray-100 text-black overflow-auto p-4">
+        <RouterView />   
       </main>
     </div>
   </div>
+  
 </template>
 
 <script setup>
@@ -23,21 +24,17 @@ import Sidebar from './components/Sidebar.vue'
 import axios from 'axios'
 import { computed } from 'vue'
 
-
-axios.defaults.baseURL = 'http://127.0.0.1:8000'
+axios.defaults.baseURL = 'http://localhost:8000'
 
 const route = useRoute()
 
-// Checa se é uma rota de autenticação
+// Rotas de autenticação
+const authPages = ['/', '/cadastro', '/ResetSenha', '/NaoEncontrada', '/login']
+
 const isAuthPage = computed(() => {
-  return route.path === '/' || route.path === '/'
+  const isMetaPublic = route.meta.layout === 'public'
+  const isPathInAuthPages = authPages.includes(route.path)
+  return isMetaPublic || isPathInAuthPages
 })
 </script>
 
-<style scoped>
-body {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-</style>
