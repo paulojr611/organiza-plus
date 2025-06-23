@@ -1,4 +1,3 @@
-Organiza+
 Organiza+ é uma plataforma web simples e gratuita para gerenciamento de tarefas, metas e calendário. O objetivo é oferecer uma experiência intuitiva e eficiente, permitindo que os usuários organizem seu dia em menos de um minuto.
 
 Funcionalidades
