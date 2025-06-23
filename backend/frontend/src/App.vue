@@ -2,19 +2,19 @@
   <div class="flex flex-col h-screen">
     <Navbar v-if="!isAuthPage" />
 
-    <div class="flex flex-1" :style="!isAuthPage ? 'margin-top: 56px;' : ''">
+    <div class="flex flex-1 min-h-0" :style="!isAuthPage ? 'margin-top: 56px;' : ''">
       <Sidebar v-if="!isAuthPage" />
 
       <template v-if="isAuthPage">
         <RouterView class="flex-1" />
       </template>
 
-      <main v-else class="flex-1 bg-gray-100 text-black overflow-auto p-4">
-        <RouterView />   
+      <main v-else class="flex-1 min-h-0 bg-gray-100 text-black overflow-auto p-4">
+        <RouterView />
       </main>
     </div>
   </div>
-  
+
 </template>
 
 <script setup>
@@ -37,4 +37,3 @@ const isAuthPage = computed(() => {
   return isMetaPublic || isPathInAuthPages
 })
 </script>
-

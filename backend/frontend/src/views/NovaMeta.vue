@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-xl mx-auto mt-8 bg-white p-6 rounded-2xl shadow space-y-6">
+  <div class="max-w-xl mx-auto mt-8 bg-white p-6 rounded-2xl shadow space-y-6 overflow-y-auto">
     <h2 class="text-xl font-semibold">Criar Nova Meta</h2>
 
     <form @submit.prevent="submitGoal" class="space-y-4">
@@ -11,7 +11,7 @@
 
       <div>
         <label class="block mb-1 font-medium">Valor Alvo</label>
-        <input v-model="goal.target_value" type="number" min="1" max="1000000" 
+        <input v-model="goal.target_value" type="number" min="1" max="1000000"
           class="w-full px-4 py-2 rounded border border-gray-300 focus:ring  focus:ring-blue-200" required />
       </div>
 

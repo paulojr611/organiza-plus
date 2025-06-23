@@ -4,14 +4,14 @@
       <h1 class="text-3xl font-bold">Gerenciar Lembretes</h1>
     </header>
 
-    <main class="flex-1 flex gap-8 overflow-hidden">
+    <main class="flex-1 flex gap-8 overflow-y-auto">
       <section class="flex-1 bg-gray-50 rounded-xl p-4 flex flex-col overflow-y min-h-0">
         <h2 class="text-2xl font-semibold mb-4">Novo Lembrete</h2>
         <form @submit.prevent="submitReminder" class="space-y-4">
           <div>
             <label class="block mb-1 font-semibold">Título</label>
-            <input v-model="form.title" class="w-full border p-2 rounded-lg" maxlength="30"
-              :class="{ 'border-red-500': errors.title }" @input="errors.title = ''" required />
+            <input v-model="form.title" class="w-full border p-2 rounded-lg" :class="{ 'border-red-500': errors.title }"
+              @input="errors.title = ''" required />
             <p v-if="errors.title" class="text-red-500 text-sm mt-1">
               {{ errors.title }}
             </p>
@@ -68,7 +68,7 @@
             </button>
           </div>
         </div>
-        <p v-else class="text-gray-500">Nenhum lembrete agendado.</p>
+        <p v-else class="text-gray-500">Nenhum lembrete cadastrado.</p>
       </section>
     </main>
 

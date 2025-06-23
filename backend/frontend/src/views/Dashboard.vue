@@ -3,14 +3,12 @@
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-2xl font-bold">Olá, {{ user.name }}!</h1>
     </div>
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 flex-1 overflow-auto">
-
+    <div class="grid grid-cols-1 md:grid-cols-4 auto-rows-min gap-4 flex-1 overflow-auto">
       <div class="bg-white p-4 rounded-2xl shadow flex flex-col">
         <div>
           <h2 class="font-semibold mb-3">Calendário</h2>
           <vc-calendar class="w-full mb-6" is-expanded :attributes="calendarAttributes" @dayclick="goToDate" />
         </div>
-
         <h2 class="text-xl font-semibold mb-4">
           Lembretes de {{ selectedDay.toLocaleDateString('pt-BR') }}
         </h2>
@@ -110,8 +108,7 @@
 
 
       <!-- TAREFAS -->
-      <div class="bg-white p-4 rounded-2xl shadow col-span-2
-         h-[calc(101vh-3.5rem-4rem-2rem)] overflow-y-auto">
+      <div class="bg-white p-4 rounded-2xl shadow md:col-span-2 overflow-y-auto">
         <h2 class="font-semibold mb-3">
           Tarefas de {{ selectedDay.toLocaleDateString('pt-BR') }}
         </h2>
