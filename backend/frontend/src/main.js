@@ -11,6 +11,9 @@ import "vue-toastification/dist/index.css";
 
 axios.defaults.baseURL = "http://localhost:8000";
 
+//axios.defaults.baseURL = 'https://organizamais.com'
+
+
 axios.interceptors.request.use((config) => {
   const token = localStorage.getItem('api_token');
   if (token) {

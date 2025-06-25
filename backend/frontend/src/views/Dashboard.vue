@@ -3,47 +3,50 @@
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-2xl font-bold">Olá, {{ user.name }}!</h1>
     </div>
-    <div class="grid grid-cols-1 md:grid-cols-4 auto-rows-min gap-4 flex-1 overflow-auto">
-      <div class="bg-white p-4 rounded-2xl shadow flex flex-col">
-        <div>
-          <h2 class="font-semibold mb-3">Calendário</h2>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 flex-1 min-h-0">
+      <div class="bg-white p-4 rounded-2xl shadow flex flex-col flex-1 min-h-0">
+        <h2 class="font-semibold mb-3">Calendário</h2>
+        <div class="flex-1 overflow-auto min-h-0">
           <vc-calendar class="w-full mb-6" is-expanded :attributes="calendarAttributes" @dayclick="goToDate" />
+          <h2 class="text-xl font-semibold mb-4">
+            Lembretes de {{ selectedDay.toLocaleDateString('pt-BR') }}
+          </h2>
+          <ul class="space-y-4">
+            <li v-for="rem in filteredReminders" :key="rem.id"
+              class="flex justify-between items-start bg-blue-50 p-4 rounded-xl border border-blue-100">
+              <div>
+                <h3 class="font-medium text-blue-800">{{ rem.title }}</h3>
+                <small class="text-xs text-gray-600">
+                  {{ formatReminderTime(rem.remind_at) }}
+                </small>
+              </div>
+            </li>
+            <li v-if="!filteredReminders.length" class="text-center text-gray-400">
+              Sem lembretes para este dia.
+            </li>
+          </ul>
         </div>
-        <h2 class="text-xl font-semibold mb-4">
-          Lembretes de {{ selectedDay.toLocaleDateString('pt-BR') }}
-        </h2>
-        <ul class="space-y-4 overflow-y-auto max-h-96">
-          <li v-for="rem in filteredReminders" :key="rem.id"
-            class="flex justify-between items-start bg-blue-50 p-4 rounded-xl border border-blue-100">
-            <div>
-              <h3 class="font-medium text-blue-800">{{ rem.title }}</h3>
-              <small class="text-xs text-gray-600">{{ formatReminderTime(rem.remind_at) }}</small>
-            </div>
-          </li>
-          <li v-if="!filteredReminders.length" class="text-center text-gray-400">
-            Sem lembretes para este dia.
-          </li>
-        </ul>
       </div>
 
 
       <!-- METAS -->
-      <div class="bg-white p-4 rounded-2xl shadow">
+      <div class="bg-white p-4 rounded-2xl shadow min-w-0 w-full">
         <h2 class="font-semibold text-lg mb-4">Progresso das Metas</h2>
 
         <!-- Container rolável -->
         <div class="max-h-[76vh] overflow-y-auto pr-2 space-y-5">
           <div v-for="goal in filteredGoals" :key="goal.id" :class="[
-            'p-4 rounded-2xl border shadow-sm hover:shadow transition-shadow duration-200',
+            'p-4 rounded-2xl border shadow-sm hover:shadow transition-shadow duration-200 min-w-0 w-full',
             goalProgressPercent(goalInputs[goal.id], goal.target_value) >= 100
               ? 'bg-green-50 border-green-200'
               : 'bg-gray-50 border-gray-100'
           ]">
             <!-- Header -->
-            <div class="flex justify-between items-start mb-4">
-              <div>
+            <div class="flex justify-between items-start mb-4 min-w-0">
+              <div class="min-w-0">
+                <!-- título com wrap -->
                 <p :class="[
-                  'text-base md:text-lg font-semibold',
+                  'text-base md:text-lg font-semibold break-words whitespace-normal',
                   goalProgressPercent(goalInputs[goal.id], goal.target_value) >= 100
                     ? 'text-green-800'
                     : 'text-gray-800'
@@ -61,11 +64,11 @@
                     title="Editar meta">
                     <PencilIcon :class="goalProgressPercent(goalInputs[goal.id], goal.target_value) >= 100
                       ? 'text-green-800 hover:text-green-900'
-                      : 'text-gray-600 hover:text-gray-800'" class="w-5 h-5" />
+                      : 'text-gray-600 hover:text-gray-800'" class="w-6 h-6" />
                   </button>
                   <button @click="openConfirmGoal(goal.id)" class="p-1 rounded-full hover:bg-red-100 transition"
                     title="Excluir meta">
-                    <TrashIcon class="w-5 h-5 text-red-600 hover:text-red-800" />
+                    <TrashIcon class="w-6 h-6 text-red-600 hover:text-red-800" />
                   </button>
                 </div>
                 <span class="mt-1 inline-block text-xs font-medium px-2 py-0.5 rounded-full" :class="goalProgressPercent(goalInputs[goal.id], goal.target_value) >= 100
@@ -107,6 +110,7 @@
 
 
 
+
       <!-- TAREFAS -->
       <div class="bg-white p-4 rounded-2xl shadow md:col-span-2 overflow-y-auto">
         <h2 class="font-semibold mb-3">
@@ -124,9 +128,8 @@
           </div>
         </div>
 
-        <!-- Filtro de status e pesquisa -->
+        <!-- Filtros -->
         <nav class="flex justify-between items-start border-b border-gray-200 mb-5">
-          <!-- Filtros -->
           <div class="flex space-x-6 pt-1">
             <button v-for="option in statusOptions" :key="option" @click="statusFilter = option" type="button" :class="[
               'pb-2 font-medium text-sm transition-colors',
@@ -141,71 +144,59 @@
             <input type="search" v-model="searchTerm" placeholder=" Pesquisar tarefa..."
               class="border border-gray-300 rounded-full px-5 py-1 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 transition w-72 -translate-y-1" />
           </div>
-
         </nav>
 
-        <!-- Lista de tarefas -->
+        <!-- Lista -->
         <ul class="space-y-4">
           <li v-for="task in filteredTasks" :key="task.id"
             class="p-4 bg-gray-100 rounded-2xl shadow flex flex-col space-y-2">
-            <!-- Cabeçalho -->
-            <div class="flex justify-between items-start">
-              <h3 class="font-semibold text-lg">{{ task.title }}</h3>
+            <!-- Cabeçalho clicável com chevron -->
+            <div class="flex justify-between items-center cursor-pointer select-none" @click="toggleExpanded(task.id)">
+              <div class="flex items-center space-x-2">
+                <component :is="expandedTasks.includes(task.id) ? ChevronDownIcon : ChevronRightIcon" :class="[
+                  'w-6 h-6 transition-transform duration-200',
+                  task.subtasks && task.subtasks.length > 0
+                    ? 'text-blue-700'
+                    : 'text-black'
+                ]" />
+                <h3 class="font-semibold text-lg">{{ task.title }}</h3>
+              </div>
+
               <div class="flex space-x-2 items-center">
-
-                <!-- Botões -->
-                <button v-if="task.subtasks && task.subtasks.length > 0" @click="toggleExpanded(task.id)"
-                  class="text-blue-600 hover:text-blue-800" aria-label="Expandir subtarefas"
-                  title="Expandir subtarefas">
-                  <span v-if="expandedTasks.includes(task.id)">
-                    <ArrowDownCircleIcon class="w-6 h-6" />
-                  </span>
-                  <span v-else>
-                    <ArrowRightCircleIcon class="w-6 h-6" />
-                  </span>
+                <button @click.stop="openDateModal(task)" title="Alterar data">
+                  <CalendarDaysIcon class="w-6 h-6 hover:text-gray-700" />
                 </button>
-                <button @click="openDateModal(task)" class="p-1 rounded hover:bg-gray-200" aria-label="Alterar data"
-                  title="Alterar data">
-                  <CalendarDaysIcon class="w-5 h-5" />
-                </button>
-
-                <button @click="openNotesModal(task)" :class="[
-                  'p-1 rounded',
+                <button @click.stop="openNotesModal(task)" :class="[
+                  'p-1 rounded transition',
                   task.notes
-                    ? 'hover:bg-blue-200'
-                    : 'hover:bg-gray-200'
-                ]" title="Anotações" aria-label="Anotações">
-                  <PencilSquareIcon :class="[
-                    'w-5 h-5 transition-colors duration-200',
-                    task.notes ? 'text-blue-600' : 'text-black'
-                  ]" />
+                    ? 'text-blue-600 hover:bg-blue-100'
+                    : 'hover:text-gray-700'
+                ]" title="Anotações">
+                  <PencilSquareIcon class="w-6 h-6" />
                 </button>
 
-                <button @click="editTask(task)" class="p-1 rounded hover:bg-gray-200" title="Editar tarefa"
-                  aria-label="Editar tarefa">
-                  <PencilIcon class="w-5 h-5" />
+                <button @click.stop="editTask(task)" title="Editar tarefa">
+                  <PencilIcon class="w-6 h-6 hover:text-gray-700" />
                 </button>
-                <button @click="openConfirmTask(task.id)" class="text-red-600 hover:text-red-800" title="Excluir tarefa"
-                  aria-label="Excluir tarefa">
-                  <TrashIcon class="w-5 h-5" />
+                <button @click.stop="openConfirmTask(task.id)" title="Excluir tarefa">
+                  <TrashIcon class="w-6 h-6 text-red-600 hover:text-red-800" />
                 </button>
               </div>
             </div>
 
             <!-- Status -->
             <div :class="cardClassByStatus(task.status) +
-              ' flex items-center space-x-2 flex-wrap p-3 rounded-xl transition-all duration-300'
-              ">
+              ' flex items-center space-x-2 flex-wrap p-3 rounded-xl transition-all duration-300'">
               <span class="text-sm text-gray-600">Status:</span>
-              <button @click="updateStatus(task, 'Não iniciada')"
+              <button @click.stop="updateStatus(task, 'Não iniciada')"
                 class="text-gray-600 bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-full text-sm">
                 Não iniciada
               </button>
-              <button @click="updateStatus(task, 'Em andamento')"
+              <button @click.stop="updateStatus(task, 'Em andamento')"
                 class="text-yellow-700 bg-yellow-100 hover:bg-yellow-200 px-3 py-1 rounded-full text-sm">
                 Em andamento
               </button>
-              <button @click="updateStatus(task, 'Concluída')"
+              <button @click.stop="updateStatus(task, 'Concluída')"
                 class="text-green-700 bg-green-100 hover:bg-green-200 px-3 py-1 rounded-full text-sm">
                 Concluída
               </button>
@@ -213,28 +204,45 @@
 
             <!-- Subtarefas -->
             <transition name="fade">
-              <ul v-if="expandedTasks.includes(task.id)" class="ml-4 mt-3 space-y-2">
-                <li v-for="sub in task.subtasks" :key="sub.id" class="flex items-center text-sm">
-                  <label class="inline-flex items-center cursor-pointer">
-                    <input type="checkbox" :checked="sub.status === 'Concluída'" @change="toggleSubtask(sub, task)"
-                      class="peer sr-only" />
+              <div v-if="expandedTasks.includes(task.id)" class="ml-4 mt-3 space-y-2">
+                <ul class="space-y-2">
+                  <li v-for="sub in task.subtasks" :key="sub.id" class="flex items-center text-sm">
+                    <label class="inline-flex items-center cursor-pointer w-full">
+                      <input type="checkbox" :checked="sub.status === 'Concluída'"
+                        @change.stop="toggleSubtask(sub, task)" class="peer sr-only" />
+                      <div
+                        class="w-6 h-6 rounded border-2 border-gray-400 peer-checked:border-blue-600 peer-checked:bg-blue-600 flex items-center justify-center transition">
+                        <svg v-if="sub.status === 'Concluída'" xmlns="http://www.w3.org/2000/svg"
+                          class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                      <span :class="{ 'line-through text-gray-400': sub.status === 'Concluída' }" class="ml-2">
+                        {{ sub.title }}
+                      </span>
+                    </label>
+                      <button @click.stop="deleteSubtask(task, sub.id)" class="p-1 rounded hover:bg-red-100 transition"
+                      title="Excluir subtarefa">
+                      <TrashIcon class="w-5 h-5 text-red-600 hover:text-red-800" />
+                    </button>
 
-                    <div
-                      class="w-5 h-5 rounded border-2 border-gray-400 peer-checked:border-blue-600 peer-checked:bg-blue-600 flex items-center justify-center transition">
-                      <svg v-if="sub.status === 'Concluída'" xmlns="http://www.w3.org/2000/svg"
-                        class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
+                  </li>
+                </ul>
 
-                    <span :class="{ 'line-through text-gray-400': sub.status === 'Concluída' }" class="ml-2">
-                      {{ sub.title }}
-                    </span>
-                  </label>
-                </li>
-              </ul>
+                <!-- Input adicionar subtarefa -->
+                <div class="flex items-center gap-2">
+                  <input v-model="newSubtask[task.id]" @keyup.enter.stop="addSubtask(task)"
+                    class="border rounded px-2 py-1 text-sm w-full" placeholder="Nova subtarefa..." />
+                  <button @click.stop="addSubtask(task)"
+                    class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
+                    Adicionar
+                  </button>
+                </div>
+              </div>
             </transition>
           </li>
+
+
 
           <!-- Sem tarefas -->
           <li v-if="!filteredTasks.length" class="text-gray-500">
@@ -242,6 +250,8 @@
           </li>
         </ul>
       </div>
+
+
 
       <!-- Modal de alterar data -->
       <div v-if="editingTask" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -367,7 +377,7 @@
 <script setup>
 import { ref, computed, onMounted, reactive, watch } from 'vue'
 import { useStore } from '@/stores'
-import { PaperClipIcon, CheckCircleIcon, BellIcon, CalendarDaysIcon, PencilSquareIcon, PencilIcon, TrashIcon, ArrowDownCircleIcon, ArrowRightCircleIcon } from '@heroicons/vue/24/outline'
+import { PaperClipIcon, CheckCircleIcon, BellIcon, CalendarDaysIcon, PencilSquareIcon, PencilIcon, TrashIcon, ChevronRightIcon, ChevronDownIcon } from '@heroicons/vue/24/outline'
 import { sidebar } from '../stores/menuSidebar'
 import { useToast } from 'vue-toastification'
 
@@ -509,8 +519,6 @@ const calendarAttributes = computed(() => {
 })
 
 
-
-
 const searchTerm = ref('')
 
 const filteredTasks = computed(() => {
@@ -526,6 +534,32 @@ const filteredTasks = computed(() => {
   return filtered;
 });
 
+
+const newSubtask = reactive({});
+
+const addSubtask = async (task) => {
+  const title = newSubtask[task.id]?.trim();
+  if (!title) return;
+
+  try {
+    const sub = await store.createSubtask(task.id, title);
+
+    if (!task.subtasks) task.subtasks = [];
+    task.subtasks.push(sub);
+
+    newSubtask[task.id] = '';
+  } catch (err) {
+    console.error('Erro ao adicionar subtarefa:', err);
+  }
+};
+
+async function deleteSubtask(task, subId) {
+  try {
+    await store.deleteSubtask(task.id, subId);
+  } catch (err) {
+    // já logado no store, mas pode mostrar toast se quiser
+  }
+}
 
 const expandedTasks = ref([])
 
