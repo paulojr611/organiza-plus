@@ -19,6 +19,21 @@ class SubtaskController extends Controller
 
         return response()->json($subs);
     }
+     public function store(Request $request)
+    {
+        $data = $request->validate([
+            'task_id' => 'required|exists:tasks,id',
+            'title'   => 'required|string|max:255',
+        ]);
+
+        $sub = Subtask::create([
+            'task_id' => $data['task_id'],
+            'title'   => $data['title'],
+            'status'  => 'Não iniciada',
+        ]);
+
+        return response()->json($sub, 201);
+    }
     public function update(Request $request, Subtask $subtask)
     {
         $request->validate([

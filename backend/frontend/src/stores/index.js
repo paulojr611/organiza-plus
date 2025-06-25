@@ -49,7 +49,7 @@ export const useStore = defineStore("main", {
                 form.title = "";
                 form.due_dates = [];
                 selectedDays.value = [];
-                form.subtasks = []; 
+                form.subtasks = [];
                 router.push({ name: "Dashboard" });
             } catch (err) {
                 if (err.response?.status === 422 && err.response.data.errors) {
@@ -291,7 +291,13 @@ export const useStore = defineStore("main", {
                 console.error("Erro ao excluir lembrete:", err);
             }
         },
-
+        async createSubtask(taskId, title) {
+            const response = await axios.post("/subtasks", {
+                task_id: taskId,
+                title: title,
+            });
+            return response.data;
+        },
         async fetchSubtasksByDate(dateStr) {
             this.loading = true;
             this.error = null;
@@ -320,13 +326,20 @@ export const useStore = defineStore("main", {
             );
         },
 
-        async deleteSubtask(id) {
+        async deleteSubtask(taskId, subtaskId) {
             try {
                 const token = localStorage.getItem("api_token");
-                await axios.delete(`/subtasks/${id}`, {
+                await axios.delete(`/subtasks/${subtaskId}`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
-                this.subtasks = this.subtasks.filter((s) => s.id !== id);
+
+                const task = this.tasks.find((t) => t.id === taskId);
+                if (!task || !Array.isArray(task.subtasks)) {
+                    console.warn("Task ou subtasks não encontrado", task);
+                    return;
+                }
+
+                task.subtasks = task.subtasks.filter((s) => s.id !== subtaskId);
             } catch (err) {
                 console.error("Erro ao deletar subtarefa:", err);
                 throw err;
