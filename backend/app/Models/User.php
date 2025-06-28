@@ -1,28 +1,25 @@
 <?php
 
 namespace App\Models;
+
 use App\Models\Task;
 use App\Models\Reminder;
-
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;               
+use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait; 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail // implemente a interface
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, MustVerifyEmailTrait; // use também o trait de verificação
 
     /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
      */
-    public function tasks()
-{
-    return $this->hasMany(Task::class);
-}
     protected $fillable = [
         'name',
         'email',
@@ -47,13 +44,20 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
-    public function goals()
-{
-    return $this->hasMany(Goal::class);
-}
-public function reminders()
-{
-    return $this->hasMany(Reminder::class);
-}
 
+    // Relações
+    public function tasks()
+    {
+        return $this->hasMany(Task::class);
+    }
+
+    public function goals()
+    {
+        return $this->hasMany(Goal::class);
+    }
+
+    public function reminders()
+    {
+        return $this->hasMany(Reminder::class);
+    }
 }

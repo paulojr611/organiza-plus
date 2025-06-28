@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Auth\Events\Registered;
 use App\Models\User;
 
 class AuthController extends Controller
@@ -24,7 +25,7 @@ class AuthController extends Controller
             return response()->json(['message' => 'Credenciais inválidas'], 401);
         }
 
-        // Emite um token de API (nome “api-token” mas você pode customizar)
+        // Emite um token de API (Sanctum)
         $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json([
@@ -34,34 +35,42 @@ class AuthController extends Controller
     }
 
     /**
-     * Registra um novo usuário e já retorna um token de API.
+     * Registra um novo usuário, dispara verificação de e-mail e retorna um token de API.
      */
     public function register(Request $request)
     {
+        // Validação dos campos
         $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users',
+            'name'     => 'required|string|max:50',
+            'email'    => 'required|email|unique:users,email',
             'password' => 'required|string|min:6'
         ]);
 
+        // Cria o usuário (inserindo na tabela users)
         $user = User::create([
             'name'     => $request->name,
             'email'    => $request->email,
             'password' => Hash::make($request->password),
         ]);
 
-        // Emite o token logo após registrar
+        // Dispara o evento de Registered, que envia o e-mail de verificação
+        event(new Registered($user));
+
+        // Gera o token de API (Sanctum)
         $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json([
-            'user'  => $user,
-            'token' => $token,
+            'user'    => $user,
+            'token'   => $token,
+            'message' => 'Cadastro realizado! Verifique seu e-mail para ativar a conta.'
         ], 201);
     }
 
+    /**
+     * Faz logout, revogando todos os tokens do usuário.
+     */
     public function logout(Request $request)
     {
-        // Revoga todos os tokens
         $request->user()->tokens()->delete();
 
         return response()->json(['message' => 'Logout realizado com sucesso'], 200);

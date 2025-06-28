@@ -134,21 +134,16 @@ async function handleRegister() {
   try {
     const { data } = await axios.post('/api/register', form)
 
-    // 1) Guarda no localStorage
     localStorage.setItem('api_token', data.token)
     localStorage.setItem('user', JSON.stringify(data.user))
 
-    // 2) Configura o header do axios
     axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`
 
-    // 3) Preenche o Pinia store
     store.user = data.user
-    // opcional: você já usa store.token em outros lugares?
     store.token = data.token
 
     toast.success('Cadastro realizado com sucesso!')
 
-    // 4) Redireciona para o Dashboard
     router.push({ name: 'Dashboard' })
   } catch (err) {
     console.error('Erro no cadastro:', err)
