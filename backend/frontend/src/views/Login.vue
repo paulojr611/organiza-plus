@@ -33,9 +33,6 @@
         </div>
 
 
-
-
-        <!-- Botão de submit -->
         <button type="submit" :disabled="loading"
           class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 rounded-lg transition-colors disabled:opacity-50 flex justify-center items-center mt-4">
           <span v-if="loading"
@@ -43,12 +40,12 @@
           {{ loading ? 'Entrando...' : 'Entrar' }}
         </button>
       </form>
-
-      <!-- Links -->
+ <!--
       <p class="text-center text-sm text-gray-600 mt-4">
         <router-link to="/ResetSenha" class="text-blue-500 hover:underline">Esqueceu sua senha?</router-link>
       </p>
-      <p class="text-center text-sm text-gray-600 mt-2">
+      -->
+      <p class="text-center text-sm text-gray-600 mt-4">
         Não tem conta?
         <router-link to="/cadastro" class="text-blue-500 hover:underline">Cadastre-se</router-link>
       </p>
@@ -87,10 +84,11 @@ async function handleSubmit() {
     toast.warning('Digite um e‑mail válido.')
     return
   }
-  if (form.password.length < 6) {
+ /* if (form.password.length < 6) {
     toast.warning('A senha precisa ter ao menos 6 caracteres.')
     return
-  }
+    */
+  
 
   loading.value = true
   try {

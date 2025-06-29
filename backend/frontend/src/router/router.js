@@ -24,7 +24,7 @@ const routes = [
         meta: { layout: "public" },
     },
     {
-        path: "/reset-senha",
+        path: "/resetsenha",
         name: "ResetSenha",
         component: resetsenha,
         meta: { layout: "public" },
