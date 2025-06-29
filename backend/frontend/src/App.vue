@@ -9,10 +9,7 @@
         <RouterView class="flex-1 min-h-0 overflow-auto" />
       </template>
 
-      <main
-        v-else
-        class="flex-1 min-h-0 bg-gray-100 text-black overflow-auto p-4"
-      >
+      <main v-else class="flex-1 bg-gray-100 text-black overflow-auto p-4">
         <RouterView />
       </main>
     </div>

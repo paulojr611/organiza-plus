@@ -4,7 +4,13 @@
       <h1 class="text-2xl font-bold">Olá, {{ user.name }}!</h1>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 flex-1 min-h-0">
-      <div class="bg-white p-4 rounded-2xl shadow flex flex-col flex-1 min-h-0">
+      <div class="
+    bg-white p-4 rounded-2xl shadow
+    w-full h-auto               
+    md:flex md:flex-col
+    md:flex-1 md:min-h-0
+    md:overflow-y-auto
+  ">
         <h2 class="font-semibold mb-3">Calendário</h2>
         <div class="flex-1 overflow-auto min-h-0">
           <vc-calendar class="w-full mb-6" is-expanded :attributes="calendarAttributes" @dayclick="goToDate" />
@@ -30,7 +36,12 @@
 
 
       <!-- METAS -->
-      <div class="bg-white p-4 rounded-2xl shadow min-w-0 w-full">
+      <div class="
+    bg-white p-4 rounded-2xl shadow
+    w-full h-auto            
+    md:flex md:flex-col       
+    md:flex-1 md:min-h-0      
+    ">
         <h2 class="font-semibold text-lg mb-4">Progresso das Metas</h2>
 
         <!-- Container rolável -->
@@ -112,7 +123,14 @@
 
 
       <!-- TAREFAS -->
-      <div class="bg-white p-4 rounded-2xl shadow md:col-span-2 overflow-y-auto">
+      <div class="
+     bg-white p-4 rounded-2xl shadow
+     w-full h-auto              
+     md:col-span-2            
+     md:flex md:flex-col         
+     md:flex-1 md:min-h-0        
+     md:overflow-y-auto         
+   ">
         <h2 class="font-semibold mb-3">
           Tarefas de {{ selectedDay.toLocaleDateString('pt-BR') }}
         </h2>
@@ -129,10 +147,11 @@
         </div>
 
         <!-- Filtros -->
-        <nav class="flex justify-between items-start border-b border-gray-200 mb-5">
-          <div class="flex space-x-6 pt-1">
+        <nav class="flex flex-col md:flex-row md:justify-between md:items-center border-b border-gray-200 mb-5 gap-4">
+          <!-- Botões de status -->
+          <div class="flex flex-wrap gap-3">
             <button v-for="option in statusOptions" :key="option" @click="statusFilter = option" type="button" :class="[
-              'pb-2 font-medium text-sm transition-colors',
+              'pb-1 font-medium text-sm transition-colors',
               statusFilter === option
                 ? 'border-b-2 border-blue-600 text-blue-600'
                 : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -140,9 +159,11 @@
               {{ option }}
             </button>
           </div>
-          <div class="mt-0">
-            <input type="search" v-model="searchTerm" placeholder=" Pesquisar tarefa..."
-              class="border border-gray-300 rounded-full px-5 py-1 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 transition w-72 -translate-y-1" />
+
+          <!-- Campo de busca -->
+          <div>
+            <input type="search" v-model="searchTerm" placeholder="Pesquisar tarefa..."
+              class="border border-gray-300 rounded-full px-5 py-1 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 transition w-full md:w-72" />
           </div>
         </nav>
 
@@ -152,14 +173,16 @@
             class="p-4 bg-gray-100 rounded-2xl shadow flex flex-col space-y-2">
             <!-- Cabeçalho clicável com chevron -->
             <div class="flex justify-between items-center cursor-pointer select-none" @click="toggleExpanded(task.id)">
-              <div class="flex items-center space-x-2">
+              <div class="flex items-center space-x-2 min-w-0">
                 <component :is="expandedTasks.includes(task.id) ? ChevronDownIcon : ChevronRightIcon" :class="[
                   'w-6 h-6 transition-transform duration-200',
                   task.subtasks && task.subtasks.length > 0
                     ? 'text-blue-700'
                     : 'text-black'
                 ]" />
-                <h3 class="font-semibold text-lg">{{ task.title }}</h3>
+                <h3 class="font-semibold text-lg truncate" title="">
+                  {{ task.title }}
+                </h3>
               </div>
 
               <div class="flex space-x-2 items-center">
@@ -207,7 +230,7 @@
               <div v-if="expandedTasks.includes(task.id)" class="ml-4 mt-3 space-y-2">
                 <ul class="space-y-2">
                   <li v-for="sub in task.subtasks" :key="sub.id" class="flex items-center text-sm">
-                    <label class="inline-flex items-center cursor-pointer w-full">
+                    <label class="inline-flex items-center cursor-pointer w-full min-w-0">
                       <input type="checkbox" :checked="sub.status === 'Concluída'"
                         @change.stop="toggleSubtask(sub, task)" class="peer sr-only" />
                       <div
@@ -217,11 +240,12 @@
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
                         </svg>
                       </div>
-                      <span :class="{ 'line-through text-gray-400': sub.status === 'Concluída' }" class="ml-2">
+                      <span :class="{ 'line-through text-gray-400': sub.status === 'Concluída' }" class="ml-2 truncate"
+                        title="{{ sub.title }}">
                         {{ sub.title }}
                       </span>
                     </label>
-                      <button @click.stop="deleteSubtask(task, sub.id)" class="p-1 rounded hover:bg-red-100 transition"
+                    <button @click.stop="deleteSubtask(task, sub.id)" class="p-1 rounded hover:bg-red-100 transition"
                       title="Excluir subtarefa">
                       <TrashIcon class="w-5 h-5 text-red-600 hover:text-red-800" />
                     </button>
@@ -277,7 +301,7 @@
     </div>
 
     <!-- Modal de Anotações -->
-    <div v-if="showNotesModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div v-if="showNotesModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 break-words">
       <div class="bg-white rounded-2xl p-6 w-full max-w-3xl mx-4" style="max-height: 85vh; overflow-y: auto;">
         <h2 class="text-lg font-bold mb-4">
           Anotações para "{{ selectedTask.title }}"
